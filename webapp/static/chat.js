@@ -22,7 +22,7 @@ function getUserId() {
 
 function chat_send() {
     const form = document.querySelector('#message-form');
-    const chat = document.querySelector('#chat');
+    const chat = document.querySelector('#chat-content');
     
     form.addEventListener('submit', (event) => {
         event.preventDefault();
@@ -55,9 +55,16 @@ function chat_send() {
     });
 
     function addMessage(user, message) {
+        load = document.getElementById("loading");
+        if (load.style.display !== "none")
+            load.style.display = "none";
+
+        // const end = document.getElementById("anchor");
         const p = document.createElement('p');
         p.innerHTML = `<strong>${user}:</strong> ${message}`;
-        chat.appendChild(p);
+        // end.before(p);
+        chat.append(p)
+        chat.scrollTop = chat.scrollHeight
     }
 }
 

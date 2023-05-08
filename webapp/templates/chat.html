@@ -1,18 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>Flask Chatbot</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat with ChatGPT</title>
+    <link rel="stylesheet" href="static/chat.css" />
   </head>
   <body>
-    <h1>Chatbot</h1>
-    <div id="chat">
-      <p>Hi! How can I help you today?</p>
+    <div class="container">
+      <div class="chat-box">
+        <div class="chat-header">
+          <h3>Chat with ChatGPT</h3>
+        </div>
+        <div class="chat-content" id="chat-content">
+          <div id="loading">
+            <p>Loading Chat...</p>
+          </div>
+          <!-- <div id="anchor"></div> -->
+        </div>
+        <form class="message-form" id="message-form">
+          <input
+            type="text"
+            id="message-input"
+            name="message"
+            placeholder="Type your message here..."
+            required
+            autocomplete="off"
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+      <div class="menu">
+        <div class="menu-header">
+          <h3>Menu</h3>
+        </div>
+        <ul class="menu-list">
+          <li><a href="#">Link 1</a></li>
+          <li><a href="#">Link 2</a></li>
+          <li><a href="#">Link 3</a></li>
+        </ul>
+      </div>
     </div>
-    <form id="message-form">
-      KVA
-      <input type="text" id="message-input" name="message" autocomplete="off">KRYA</input>
-      <button type="submit">Send</button>
-    </form>
     <script src="static/chat.js"></script>
   </body>
 </html>

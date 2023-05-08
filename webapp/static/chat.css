@@ -1,0 +1,152 @@
+/* Global styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+  }
+  
+  .container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+  }
+  
+  /* Chat box styles */
+  .chat-box {
+    display: flex;
+    flex-direction: column;
+    width: 70%;
+    /* height: 80%; */
+    height: 20%;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+  
+  .chat-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    background-color: #0066cc;
+    color: #fff;
+  }
+  
+  .chat-header h3 {
+    font-size: 1.5rem;
+  }
+  
+  .chat-content {
+    height: calc(100% - 120px);
+    padding: 10px;
+    background-color: #fff;
+    overflow-y: scroll;
+    overflow-anchor: none;
+  }
+
+  .chat-content * {
+  }
+
+  /* #anchor {
+    height: 1px;
+    overflow-anchor: auto;
+  } */
+  
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-size: 1.2rem;
+    color: #777;
+  }
+  
+  .message-form {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+    padding: 10px;
+    background-color: #f0f0f0;
+  }
+  
+  #message-input {
+    flex-grow: 1;
+    margin-right: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    outline: none;
+    font-size: 1.2rem;
+  }
+  
+  button[type="submit"] {
+    width: 100px;
+    height: 40px;
+    border-radius: 5px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background-color: #0066cc;
+    color: #fff;
+    font-size: 1.2rem;
+  }
+  
+  /* Menu styles */
+  .menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30%;
+    height: 80%;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    background-color: #fff;
+    overflow: hidden;
+  }
+  
+  .menu-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60px;
+    background-color: #0066cc;
+    color: #fff;
+  }
+  
+  .menu-header h3 {
+    font-size: 1.5rem;
+  }
+  
+  .menu-list {
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 120px);
+    overflow-y: scroll;
+  }
+  
+  .menu-list li {
+    list-style: none;
+    padding: 10px;
+  }
+  
+  .menu-list li a {
+    text-decoration: none;
+    color: #333;
+  }
+  
+  .menu-list li a:hover {
+    color: #0066cc;
+  }
+  
+  .menu-list li.active {
+    background-color: #f0f0f0;
+  }
+  

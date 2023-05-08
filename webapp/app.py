@@ -2,6 +2,8 @@ import openai
 from flask import Flask, render_template, request
 import os
 
+debug = 1
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 template_dir = os.path.join(dir_path, "templates")
 
@@ -24,8 +26,10 @@ def send():
     print(request.form)
     user_id = request.form['user-id']
     message = request.form['message']
-    print(f'id - {user_id}\nmsg - {message}')
-    # return f're: {message}'
+    if (debug):
+        print(f'id - {user_id}\nmsg - {message}')
+        return f're: {message}'
+    # fi debug
     if user_id not in threads:
         # Create a new thread for this user and initialize it with the rules from the file
         with open(RULES_FILE, 'r') as f:
