@@ -1,6 +1,18 @@
 const form = document.querySelector('#message-form');
 const chat = document.querySelector('#chat');
 
+async function showPopup() {
+    var popup = document.getElementById("popup");
+    popup.classList.remove("hidden");
+    await new Promise(r => setTimeout(r, 3000)); // wait for 3 seconds
+    closePopup();
+}
+
+function closePopup() {
+    var popup = document.getElementById("popup");
+    popup.classList.add("hidden");
+}
+
 function rand_id(max) {
     console.log(`test rand ${Math.random()}`)
     return Math.floor(Math.random() * max)
@@ -51,6 +63,7 @@ function chat_send() {
             .then((reply) => {
                 console.log(reply);
                 addMessage('Bot', reply);
+                showPopup();
             })
     });
 

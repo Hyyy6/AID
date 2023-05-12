@@ -37,5 +37,5 @@
 
 5. Run
 
-   ```(.venv) $ flask run webapp/app.py --debug```
+   ```(.venv) $ flask --app webapp/app.py run --debug```
 
