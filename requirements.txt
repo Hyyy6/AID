@@ -2,3 +2,4 @@ openai
 flask
 pymongo
 flask-login
+sqlite3

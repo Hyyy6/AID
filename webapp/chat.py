@@ -13,31 +13,6 @@ bp = Blueprint("chat", __name__)
 
 threads = {}
 
-
-# def stub_chat(msg, role):
-#     # create a single example choice with the given role and message content
-#     choice = {
-#         'message': {
-#             'role': role,
-#             'content': msg,
-#         },
-#         'finish_reason': 'stop',
-#         'index': 0,
-#     }
-    
-#     # create the response object with the single choice
-#     response = {
-#         'id': 'chatcmpl-6p9XYPYSTTRi0xEviKjjilqrWU2Ve',
-#         'object': 'chat.completion',
-#         'created': 1677649420,
-#         'model': 'gpt-3.5-turbo',
-#         'usage': {'prompt_tokens': 56, 'completion_tokens': 31, 'total_tokens': 87},
-#         'choices': [choice],
-#     }
-    
-#     # return the response
-#     return response
-
 def db_log_append(user_id, user_message, assistant_message, db_handle):
     db_handle.execute("SELECT history FROM chats WHERE user_id=?", (user_id,))
     result = db_handle.fetchone()[0]
@@ -66,11 +41,7 @@ def send():
     print(request.form)
     user_id = request.form['user-id']
     message = request.form['message']
-    # if (debug):
-    #     print(f'id - {user_id}\nmsg - {message}')
-    #     flash("test flash", "error")
-    #     return Response(f're: {message}')
-    # fi debug
+
     if user_id not in threads:
         db_handle.execute("INSERT INTO users (name) VALUES (?)", (f'user_{user_id}',))
         db_handle.execute("INSERT INTO chats (user_id, history) VALUES (?, ?)", (user_id, ""))
