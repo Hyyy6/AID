@@ -1,52 +1,30 @@
 import os
+from .app import create_app
 
-from flask import Flask
+def my_func():
+    a = 1
+    return a
 
 
-def create_app(test_config=None):
-    """Create and configure an instance of the Flask application."""
-    app = Flask(__name__, instance_relative_config=True)
-    print(f'name {__name__}, inst path {app.instance_path}')
-    app.config.from_mapping(
-        # a default secret that should be overridden by instance config
-        SECRET_KEY="dev",
-        # store the database in the instance folder
-        DATABASE=os.path.join(app.instance_path, "db/user.db"),
-        MODEL_ID = "gpt-3.5-turbo",
-        RULES_FILE = os.path.join(app.instance_path, "model/rules.txt"),
-    )
-
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        app.config.from_pyfile("config.py", silent=True)
+def main():
+    print("main")
+    app = create_app()
+    app_dir = os.path.dirname(os.path.realpath(__file__))
+    test_config = os.path.join(app_dir, "test_conf.py")
+    prod_config = os.path.join(app.instance_path, "config.py")
+    
+    if (os.path.exists(test_config)):
+        app.config.from_pyfile(test_config)
+    elif (os.path.exists(prod_config)):
+        app.config.from_pyfile(prod_config)
     else:
-        # load the test config if passed in
-        app.config.update(test_config)
-
-    # ensure the instance folder exists
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
-
-    @app.route("/hello")
-    def hello():
-        return "Hello, World!"
-
-    # register the database commands
-    from webapp import db
-
-    db.init_app(app)
-
-    # apply the blueprints to the app
-    from webapp import chat
-
-    app.register_blueprint(chat.bp)
-
-    # make url_for('index') == url_for('blog.index')
-    # in another app, you might define a separate main index here with
-    # app.route, while giving the blog blueprint a url_prefix, but for
-    # the tutorial the blog will be the main index
-    app.add_url_rule("/", endpoint="index")
+        app.config.from_mapping(
+            # a default secret that should be overridden by instance config
+            SECRET_KEY="dev",
+            # store the database in the instance folder
+            DATABASE=os.path.join(app.instance_path, "db/user.db"),
+            MODEL_ID = "gpt-3.5-turbo",
+            RULES_FILE = os.path.join(app.instance_path, "model/rules.txt"),
+        )
 
     return app

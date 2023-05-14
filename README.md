@@ -38,7 +38,9 @@
 5. Run
 
    ```
+   #### initialize empty database
    (.venv) $ flask --app webapp init_db
-   (.venv) $ flask --app webapp run --debug
+   #### run the app. Options --debug, --host=<ip addr>
+   (.venv) $ flask --app webapp run 
    ```
 

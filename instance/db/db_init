@@ -1,18 +1,23 @@
 DROP TABLE IF EXISTS users;
-
+DROP TABLE IF EXISTS credentials;
 DROP TABLE IF EXISTS chats;
 
-
 CREATE TABLE users (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
- created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
- name TEXT NOT NULL
+    uuid CHAR(32),
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE credentials (
+    uuid CHAR(32),
+    passwd CHAR(64),
+    salt CHAR(64),
+    FOREIGN KEY(uuid) REFERENCES users (uuid)
+);
 
 CREATE TABLE chats (
-id INTEGER PRIMARY KEY AUTOINCREMENT,
-user_id INTEGER,
-history BLOB NOT NULL,
-FOREIGN KEY(user_id) REFERENCES users (id)
+    uuid INTEGER,
+    history BLOB NOT NULL,
+    FOREIGN KEY(uuid) REFERENCES users (uuid)
 );

@@ -25,7 +25,7 @@ def db_log_append(user_id, user_message, assistant_message, db_handle):
     print(chat_log)
     db_handle.execute("INSERT INTO chats (user_id, history) VALUES (?, ?)", (user_id, chat_log))
 
-@bp.route('/')
+@bp.route('/chat')
 def index():
     print("get request, render chat")
     flash("welcome", "info")
