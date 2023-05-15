@@ -5,14 +5,15 @@ from flask import current_app, Flask
 from hashlib import sha256
 
 class DBHandler():
-    # def __init__(self):
-    #     return self
     db = None
+    def __init__(self):
+        # self.db = None
+        pass
     def init(self):
             
-        print("db " + current_app.config["DATABASE"])
+        print("create db connection")
         self.db = sqlite3.connect(
-            current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
+            current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES, check_same_thread=False
         )
         self.db.row_factory = sqlite3.Row
         print(self.db)
@@ -20,8 +21,8 @@ class DBHandler():
         return self
 
     def reset(self):
-        print ("reset db")
         self.init()
+        print (f"reset db {self.db}")
         with current_app.open_resource(os.path.join(current_app.instance_path, "db/db_init")) as f:
             try:
                 self.db.executescript(f.read().decode("utf8"))
@@ -31,6 +32,7 @@ class DBHandler():
                 print(err)
 
     def get_db(self):
+        print(self.db)
         return self.db
 
     def get_cursor(self):
@@ -44,13 +46,24 @@ class DBHandler():
             self.db.close
 
     def exe_queries(self, entries):
+        if not self.db:
+            print("Can't execute queries - no db attached")
+            return []
         try:
-            for (query, parameters) in entries:
-                self.get_cursor().executemany(query, parameters)
+            ret = []
+            print(f"exe queries on db {self.db}")
+            for query, parameters in entries:
+                print(f"execute {query} with {parameters}")
+                cursor = self.get_cursor()
+                cursor.execute(query, parameters)
+                rows = cursor.fetchall()
+                # for row in rows:
+                #     print(row[0])
+                ret.append(rows)
 
             self.get_db().commit()
-
-            return self.get_cursor().fetchall()
+            print(f'data len {len(ret)}')
+            return ret
         except sqlite3.Error as error:
             self.get_db().rollback()
             return error
@@ -61,23 +74,29 @@ def add_user(username, email, uuid, hash, salt):
     err = 0
     
     try:
-        db_handle = DBHandler().get_db()
+        db_handle = current_app.db.get_db()
         db_cursor = db_handle.cursor()
+        print(f"add user, db handle - {db_handle}, cursor - {db_cursor}")
         sql = '''INSERT INTO users (uuid, name, email) VALUES (?, ?, ?)'''
         params = (uuid, username, email)
         db_cursor.execute(sql, params)
         if not (err and db_cursor.lastrowid()):
             err = -1
 
-        sql = '''INSERT INTO credentials (uuid, passwd, sald) VALUES (?, ?, ?)'''
+        print("insert new credentials")
+        sql = '''INSERT INTO credentials (uuid, passwd, salt) VALUES (?, ?, ?)'''
         params = (uuid, hash, salt)
         db_cursor.execute(sql, params)
-        if not (err and db_cursor.lastrowid()):
+        if not (err and db_cursor.lastrowid):
             err = -2
     except Exception as exception:
         err = exception
+        print(type(err))
+        print(err.args)
+        print(err)
 
-    if not err:
+    if err != 0:
+        print("succ")
         err = True
         db_handle.commit()
     else:
@@ -86,11 +105,14 @@ def add_user(username, email, uuid, hash, salt):
     return err
 
 def check_id_exists(user_id):
-    db_handle = DBHandler().get_db()
-    db_cursor = DBHandler().get_cursor()
-    sql = '''SELECT * FROM users WHERE user_id=?'''
-    db_cursor.execute(sql, (user_id,))
-    rows = db_handle.fetchall()
+    db_cursor = current_app.db.get_cursor()
+    sql = '''SELECT * FROM users WHERE uuid=?'''
+    rows = []
+    try:
+        db_cursor.execute(sql, (user_id,))
+        rows = db_cursor.fetchall()
+    except Exception as err:
+        print(err)
     if rows:
         return True
     else:
@@ -124,6 +146,7 @@ def init_db_command():
     """Clear existing data and create new tables."""
     print("init db from click")
     DBHandler().reset()
+    print(DBHandler().db)
     click.echo("Initialized the database.")
 
 

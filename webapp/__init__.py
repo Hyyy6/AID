@@ -35,5 +35,7 @@ def main():
         app.db = db.DBHandler()
         print('init db')
         app.db.init()
+
+    print(app.db)
         
     return app
