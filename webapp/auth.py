@@ -28,7 +28,7 @@ def valid_email(email):
 
 def get_user_id():
     for i in range(0, 1000):
-        user_id = uuid.uuid4().hex()
+        user_id = uuid.uuid4().hex
         if not db.check_id_exists(user_id):
             return user_id
     return "NULL"
@@ -72,11 +72,12 @@ def login_user(username, password):
     if stored_hash != hash:
         return None
     else:
-        return User
+        return User.load_user(uuid)
 
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
+    print("login")
     if request.method == 'POST':
         # Perform login authentication (e.g., check username and password)
         username = request.form['username']
@@ -84,7 +85,7 @@ def login():
 
         # Validate username and password (this is just an example)
         user = login_user(username, password)
-        if not user:
+        if user:
             return redirect(url_for('chat'))
 
         # Redirect back to login page if login fails

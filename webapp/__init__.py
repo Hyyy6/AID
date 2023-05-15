@@ -27,4 +27,13 @@ def main():
             RULES_FILE = os.path.join(app.instance_path, "model/rules.txt"),
         )
 
+    # register the database commands
+    from webapp import db
+    with app.app_context():
+        print('register db')
+        db.init_app(app)
+        app.db = db.DBHandler()
+        print('init db')
+        app.db.init()
+        
     return app

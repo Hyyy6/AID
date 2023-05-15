@@ -3,3 +3,4 @@ flask
 pymongo
 flask-login
 sqlite3
+SQLAlchemy

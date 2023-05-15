@@ -42,10 +42,6 @@ def create_app(test_config=None):
     # Load user from user_id (e.g., fetch user from database)
     # Return the User object or None if not found
         return User.load_user(user_id)
-    
-    # register the database commands
-    from webapp import db
-    print('register db')
-    db.init_app(app)
+
 
     return app

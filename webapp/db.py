@@ -1,23 +1,22 @@
 import sqlite3
 import os
 import click
-from flask import current_app, g
+from flask import current_app, Flask
 from hashlib import sha256
-from flask.cli import with_appcontext
 
 class DBHandler():
     # def __init__(self):
     #     return self
-    db = "test"
+    db = None
     def init(self):
-        if "db" not in g:
-            print("db " + current_app.config["DATABASE"])
-            self.db = sqlite3.connect(
-                current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
-            )
-            self.db.row_factory = sqlite3.Row
-            print(self.db)
-            g.db = self.db
+            
+        print("db " + current_app.config["DATABASE"])
+        self.db = sqlite3.connect(
+            current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
+        )
+        self.db.row_factory = sqlite3.Row
+        print(self.db)
+
         return self
 
     def reset(self):
@@ -50,6 +49,8 @@ class DBHandler():
                 self.get_cursor().executemany(query, parameters)
 
             self.get_db().commit()
+
+            return self.get_cursor().fetchall()
         except sqlite3.Error as error:
             self.get_db().rollback()
             return error
@@ -115,10 +116,7 @@ def close_db(e=None):
     """If this request connected to the database, close the
     connection.
     """
-    db = g.pop("db", None)
-
-    if db is not None:
-        db.close()
+    DBHandler().close_db()
 
 @click.command("init-db")
 # @with_appcontext
