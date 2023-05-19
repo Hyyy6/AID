@@ -1,5 +1,5 @@
 import openai
-from flask import current_app, render_template, request, flash, Response, Blueprint
+from flask import current_app, render_template, request, flash, Response, Blueprint, session
 from webapp.db import get_db
 from webapp.utils.stub_chat import stub_chat
 # from stub_chat import
@@ -9,7 +9,7 @@ from webapp.utils.stub_chat import stub_chat
 
 
 # app = Flask(__name__)
-bp = Blueprint("chat", __name__)
+bp = Blueprint("home", __name__)
 
 threads = {}
 
@@ -25,25 +25,25 @@ def db_log_append(user_id, user_message, assistant_message, db_handle):
     print(chat_log)
     db_handle.execute("INSERT INTO chats (user_id, history) VALUES (?, ?)", (user_id, chat_log))
 
-@bp.route('/chat')
+@bp.route('/chat', methods=['GET'])
 def index():
     print("get request, render chat")
     flash("welcome", "info")
     return render_template('chat.html.jinja')
 
-@bp.route('/send', methods=['POST'])
+@bp.route('/chat/send', methods=['POST'])
 def send():
     debug = current_app.config['DEBUG'] # enable debug
-    db_con = get_db()
+    db_con = current_app.db.get_db()
     db_handle = db_con.cursor()
     print("receive chat msg")
     print(request)
     print(request.form)
-    user_id = request.form['user-id']
+    user_id = session['uuid']
     message = request.form['message']
 
     if user_id not in threads:
-        db_handle.execute("INSERT INTO users (name) VALUES (?)", (f'user_{user_id}',))
+        # db_handle.execute("INSERT INTO users (name) VALUES (?)", (f'user_{user_id}',))
         db_handle.execute("INSERT INTO chats (user_id, history) VALUES (?, ?)", (user_id, ""))
         # Create a new thread for this user and initialize it with the rules from the file
         with open(current_app.config['RULES_FILE'], 'r') as f:
@@ -85,10 +85,3 @@ def send():
     db_log_append(user_id, message, response.choices[0].message.content, db_handle)
     return Response(response.choices[0].message.content)
 
-def get_reply(message):
-    # Your logic to generate a reply goes here
-    # For this example, we'll just return a hardcoded reply
-    return "I'm sorry, I didn't understand that."
-
-# if __name__ == '__main__':
-#     app.run(debug=True)

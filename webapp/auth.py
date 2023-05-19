@@ -1,11 +1,11 @@
-from flask import current_app, render_template, request, redirect, Blueprint, url_for, Response
+from flask import current_app, render_template, request, redirect, Blueprint, url_for, Response, sessions
 from webapp.user import User
 import webapp.db as db
 from flask_login import login_user
 from hashlib import sha256
 import secrets, string
 import uuid
-import webapp.chat
+import webapp.home
 
 bp = Blueprint("auth", __name__)
 
@@ -65,7 +65,7 @@ def login_user(username, password):
     
 
     print(f"login user {username}")
-    print(f"db - {current_app.db.get_db()}")
+    print(f"db - {current_app.db}")
     rows = current_app.db.exe_queries([(sql, (username, ))])[0]
     row = rows[0]
     uuid = row[0]
@@ -86,7 +86,8 @@ def login_user(username, password):
     if stored_hash != hash:
         return None
     else:
-        with current_app.app_context():
+        # with current_app.app_context():
+            # sessions.SecureCookieSession.get()
             return User.load_user(uuid)
 
 
@@ -101,10 +102,10 @@ def login():
         # Validate username and password (this is just an example)
         user = login_user(username, password)
         if user:
-            return redirect(url_for('webapp.chat.chat'))
+            return redirect(url_for('home.index'))
 
         # Redirect back to login page if login fails
-        return redirect(url_for('login'))
+        return redirect(url_for('.login'))
 
     return render_template('login.html.jinja')
 
@@ -136,7 +137,7 @@ def signup():
         # Log in the user after signup
         user = login_user(username, password)
         if user:
-            return redirect(url_for('webapp.chat.chat'))
+            return redirect(url_for('home.index'))
         else:
             return render_template('signup.html.jinja', error="internal login error")
 

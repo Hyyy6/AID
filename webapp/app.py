@@ -1,13 +1,12 @@
 import os
 from flask import Flask
-from flask_login import LoginManager
+from flask_session import Session
 from flask_login import LoginManager
 from .user import User
 
 
-def create_app(test_config=None):
+def init_app(app):
     """Create and configure an instance of the Flask application."""
-    app = Flask(__name__, instance_relative_config=True)
     print(f'name {__name__}, inst path {app.instance_path}')
 
     # ensure the instance folder exists
@@ -24,8 +23,11 @@ def create_app(test_config=None):
     from webapp import auth
     app.register_blueprint(auth.bp)
 
-    from webapp import chat
-    app.register_blueprint(chat.bp)
+    from webapp import home
+    app.register_blueprint(home.bp)
+
+    print("SECRET KEY")
+    print(app.config['SECRET_KEY'])
 
     # make url_for('index') == url_for('blog.index')
     # in another app, you might define a separate main index here with
@@ -41,7 +43,11 @@ def create_app(test_config=None):
     def load_user(user_id):
     # Load user from user_id (e.g., fetch user from database)
     # Return the User object or None if not found
-        return User.load_user(user_id)
+        with app.app_context():
+            return User.load_user(user_id)
+
+    Session(app)
+
 
 
     return app
