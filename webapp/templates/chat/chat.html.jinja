@@ -1,0 +1,70 @@
+{% extends "layout.html.jinja" %}
+{% block head %}
+{% endblock %}
+{% block body %}
+<link rel="stylesheet" href="static/chat/chat.css" />
+<div class="container">
+  <div class="chat-box">
+    <div class="chat-header">
+      <h3>Diary Chat Assistant</h3>
+      <div class="menu-dropdown">
+        <button class="profile-button">User Profile</button>
+        <div class="menu-dropdown-content">
+          <a href="#">Profile</a>
+          <a href="#">Logout</a>
+        </div>
+      </div>
+    </div>
+    <div class="chat-content" id="diary-chat-content">
+      <div id="loading">
+        <p>Loading Chat...</p>
+      </div>
+    </div>
+    <div class="chat-footer">
+      <form class="message-form" id="diary-message-form" method="POST">
+        <input type="text" id="diary-message-input" name="message" placeholder="Type your message here..." required
+          autocomplete="off" />
+        <button type="submit">Send</button>
+        <div class="chat-mode">
+          <label for="diary-chat-mode">Chat Mode:</label>
+          <select name="chat-mode" id="diary-chat-mode">
+            <option value="simple">Simple Log</option>
+            <option value="conversation">Conversation Mode</option>
+          </select>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="chat-box">
+    <div class="chat-header">
+      <h3>Psychologist Assistant</h3>
+      <div class="menu-dropdown">
+        <button class="profile-button">User Profile</button>
+        <div class="menu-dropdown-content">
+          <a href="#">Profile</a>
+          <a href="#">Logout</a>
+        </div>
+      </div>
+    </div>
+    <div class="chat-content" id="psychologist-chat-content"></div>
+    <div class="chat-footer">
+      <form class="message-form" id="psychologist-message-form" method="post">
+        <div id="diary-messages-container" class="messages-container">
+          <p>Drag and drop messages here to include in the message</p>
+        </div>
+        <input type="text" id="psychologist-message-input" name="message" placeholder="Type your message here..."
+          required autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="popup" class="popup hidden">
+    <p>Hello! This is a pop-up message.</p>
+    <span class="close-button" onclick="closePopup()">x</span>
+  </div>
+</div>
+
+<script src="static/chat/chat.js"></script>
+{% endblock %}

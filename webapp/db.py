@@ -5,16 +5,16 @@ from flask import current_app, Flask
 from hashlib import sha256
 
 class DBHandler():
-    db = None
     def __init__(self):
-        # self.db = None
-        pass
+        self.db = None
+
     def init(self):
             
         print("create db connection")
-        self.db = sqlite3.connect(
+        db = sqlite3.connect(
             current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES, check_same_thread=False
         )
+        self.db = db
         self.db.row_factory = sqlite3.Row
         print(self.db)
 
@@ -32,7 +32,7 @@ class DBHandler():
                 print(err)
 
     def get_db(self):
-        print(self.db)
+        # print(self.db)
         return self.db
 
     def get_cursor(self):
@@ -117,21 +117,6 @@ def check_id_exists(user_id):
         return True
     else:
         return False
-
-def get_db():
-    """Connect to the application's configured database. The connection
-    is unique for each request and will be reused if this is called
-    again.
-    """
-    print("get_db")
-    if "db" not in g:
-        print("db " + current_app.config["DATABASE"])
-        g.db = sqlite3.connect(
-            current_app.config["DATABASE"], detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
-
-    return g.db
 
 
 def close_db(e=None):

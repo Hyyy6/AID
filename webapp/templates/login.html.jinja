@@ -13,7 +13,7 @@
         </div>
         <div class="form-container">
             <h2>Login</h2>
-            <form id="login-form" method="post" action="{{ url_for('auth.login') }}">
+            <form id="login-form" method="post" action="{{ url_for('auth.submit_login') }}">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required>
@@ -23,6 +23,7 @@
                     <input type="password" id="password" name="password" required>
                 </div>
                 <button type="submit">Login</button>
+                <button type="submit" formaction="{{ url_for('auth.test') }}">test_form</button>
             </form>
             <div class="alternative-login">
                 <p>Or login with:</p>

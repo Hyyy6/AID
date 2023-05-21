@@ -17,7 +17,11 @@ CREATE TABLE credentials (
 );
 
 CREATE TABLE chats (
-    uuid INTEGER,
-    history BLOB NOT NULL,
-    FOREIGN KEY(uuid) REFERENCES users (uuid)
+    id INTEGER,
+    user_id INTEGER,
+    message TEXT NOT NULL,
+    sender TEXT NOT NULL,
+    chat_type TEXT NOT NULL,
+    created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users (uuid)
 );

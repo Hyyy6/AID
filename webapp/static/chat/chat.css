@@ -1,0 +1,126 @@
+.container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.chat-box {
+  width: 60%;
+  height: 80vh;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 20px;
+  overflow-y: scroll;
+}
+
+.chat-header {
+  margin-bottom: 10px;
+}
+
+.message-form {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.message-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.submit-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.menu {
+  width: 30%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 20px;
+}
+
+.menu-header {
+  margin-bottom: 10px;
+}
+
+.menu-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  margin-bottom: 10px;
+}
+
+.popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  z-index: 9999;
+  display: none;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Styles for the two chat windows */
+.chat-content {
+  margin-bottom: 10px;
+}
+
+#diary-chat-content {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+#psychologist-chat-content {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+/* Styles for the messages in the first chat window */
+.message {
+  cursor: pointer;
+  margin-bottom: 5px;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.message:hover {
+  background-color: #f0f0f0;
+}
+
+.selected {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* Context menu */
+.context-menu {
+  position: absolute;
+  display: none;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.context-menu.visible {
+  display: block;
+}
