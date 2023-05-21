@@ -1,21 +1,15 @@
-{% extends "layout.html.jinja" %}
 {% block head %}
 {% endblock %}
 {% block body %}
+{% include "layout.html.jinja" %}
 <link rel="stylesheet" href="static/chat/chat.css" />
 <div class="container">
-  <div class="chat-box">
+   <div class="chat-box" route="/diary/">
     <div class="chat-header">
       <h3>Diary Chat Assistant</h3>
-      <div class="menu-dropdown">
-        <button class="profile-button">User Profile</button>
-        <div class="menu-dropdown-content">
-          <a href="#">Profile</a>
-          <a href="#">Logout</a>
-        </div>
-      </div>
+      {% include "text_editor.html.jinja" %}
     </div>
-    <div class="chat-content" id="diary-chat-content">
+    <div class="chat-content" id="diary-chat-content" >
       <div id="loading">
         <p>Loading Chat...</p>
       </div>
@@ -36,16 +30,9 @@
     </div>
   </div>
 
-  <div class="chat-box">
+  <div class="chat-box" route="ass">
     <div class="chat-header">
       <h3>Psychologist Assistant</h3>
-      <div class="menu-dropdown">
-        <button class="profile-button">User Profile</button>
-        <div class="menu-dropdown-content">
-          <a href="#">Profile</a>
-          <a href="#">Logout</a>
-        </div>
-      </div>
     </div>
     <div class="chat-content" id="psychologist-chat-content"></div>
     <div class="chat-footer">

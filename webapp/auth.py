@@ -1,4 +1,4 @@
-from flask import current_app, render_template, request, redirect, Blueprint, url_for, Response, sessions
+from flask import current_app, render_template, request, redirect, Blueprint, url_for, make_response
 from webapp.user import User
 import webapp.db as db
 from hashlib import sha256
@@ -90,7 +90,7 @@ def check_credentials(username, password):
     else:
         # with current_app.app_context():
             # sessions.SecureCookieSession.get()
-            return User.fetch_user(uuid)
+            return User.get_user(uuid)
 
 
 @bp.route('/test_form', methods=['POST'])
@@ -119,7 +119,9 @@ def submit_login():
     user = check_credentials(username, password)
     # print(user.email)
     if user:
-        return redirect(url_for('home.index'))
+        response = make_response(redirect(url_for('home.index')))
+        # response.set_cookie()
+        return response
     ret = login_user(user)
     print("login " + ret)
     # Redirect back to login page if login fails

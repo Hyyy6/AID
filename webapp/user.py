@@ -28,7 +28,7 @@ class User(UserMixin):
     def get_name(self):
         return self.username
 
-    def fetch_user(uuid):
+    def get_user(uuid):
         user_sql = '''SELECT name, email from users WHERE uuid=?'''
 
         try:
@@ -51,18 +51,28 @@ class User(UserMixin):
         return User(uuid, name, email)
     
     def load_chat(self, chat_type):
-        load_chat_sql = '''SELECT * from chats where user_id=? AND chat_type=?'''
+        load_chat_sql = '''SELECT user_id, sender, message, chat_type, created from chats where user_id=? AND chat_type=?'''
         result = None
+        messages = []
 
         try:
-            print(f'load {self.username} chats')
+            print(f'load {self.username} {chat_type} chats')
             # result = current_app.db.exe_queries([(load_chat_sql, (self.uuid, chat_type))])
-            result = current_app.db.exe_queries([(load_chat_sql, (self.uuid, chat_type))])
+            result = current_app.db.exe_queries([(load_chat_sql, (self.uuid, chat_type, ))])[0]
+            print(len(result))
+            if not result or len(result) == 0:
+                print('error loading chat')
+                return None
+            for message_db in result:
+                # print(message_db)
+                # print(*message_db)
+                messages.append(ChatMessage(*message_db))
+            
         except Exception as e:
             print(f"Could not load {self.username} chat")
             print(e)
-            return result
-        return result
+            return None
+        return messages
     
     def append_chat(self, data):
         add_chat_sql = '''INSERT INTO chats (user_id, sender, message, chat_type) VALUES (?,?,?,?)'''

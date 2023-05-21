@@ -17,7 +17,6 @@ CREATE TABLE credentials (
 );
 
 CREATE TABLE chats (
-    id INTEGER,
     user_id INTEGER,
     message TEXT NOT NULL,
     sender TEXT NOT NULL,

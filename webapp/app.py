@@ -12,6 +12,8 @@ def init_app(app):
     # ensure the instance folder exists
     try:
         os.makedirs(app.instance_path)
+        os.makedirs(app.config['RULES_DIR'])
+        os.makedirs(app.config['RULES_DIR'] + '/models')
     except OSError:
         pass
 
@@ -43,7 +45,7 @@ def init_app(app):
     # Load user from user_id (e.g., fetch user from database)
     # Return the User object or None if not found
         with app.app_context():
-            user = User.fetch_user(user_id)
+            user = User.get_user(user_id)
             session['uuid'] = user.uuid
             return user
 

@@ -6,17 +6,35 @@ const diaryMessageInput = document.querySelector('#diary-message-input');
 const diaryChatModeSelect = document.querySelector('#diary-chat-mode');
 const diaryMessagesContainer = document.querySelector('#diary-messages-container');
 
+function getRoute(node) {
+  try {
+    route_node = node.closest('[route]')
+    // console.log(route_node.outerHTML)
+    route = route_node.getAttribute("route")
+  } catch(e) {
+    route = "/error/"
+    console.log(e);
+  }
+  return route
+}
+
 // Diary Chat Assistant
 diaryForm.addEventListener('submit', (event) => {
+  console.log(document.cookie);
+
   event.preventDefault();
   const message = diaryMessageInput.value;
-  addMessage(diaryChatContent, 'You', message);
+  addMessage(diaryChatContent, 'user', message);
   
   // Determine the appropriate route based on the selected chat mode
   const chatMode = diaryChatModeSelect.value;
-  const route = (chatMode === 'simple') ? '/diary-chat/simple' : '/diary-chat/conversation';
+  // const base_route = getRoute(this)
+  element = event.target
+  console.log(element)
+  base_route = element.closest('[route]').getAttribute('route') + "/send"
+  const route = (chatMode === 'simple') ? base_route + '/simple' : base_route + '/conversation';
   
-  console.log("SEND MSG")
+  console.log(`SEND MSG to ${route}`)
   console.log(diaryForm)
   // console.log,
   // form = new FormData(diaryForm)
@@ -35,10 +53,14 @@ diaryForm.addEventListener('submit', (event) => {
   })
   .then((response) => response.text())
   .then((html_text) => {
-    console.log(html_text)
+    // console.log(html_text)
     parser = new DOMParser()
     html = parser.parseFromString(html_text, 'text/html')
-    diaryChatContent.appendChild(html.documentElement);
+    messages = html.querySelectorAll('.message')
+    messages.forEach(message => {
+      diaryChatContent.append(message)
+    })
+    diaryChatContent.scrollTop = diaryChatContent.scrollHeight
   })
   .catch((err) => console.log(err))
 
@@ -48,7 +70,7 @@ diaryForm.addEventListener('submit', (event) => {
 psychologistForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const message = psychologistMessageInput.value;
-  addMessage(psychologistChatContent, 'You', message);
+  addMessage(psychologistChatContent, 'user', message);
   psychologistMessageInput.value = '';
 
   // Collect all the diary messages and attach them to the psychologist's message
@@ -74,14 +96,37 @@ psychologistForm.addEventListener('submit', (event) => {
     });
 });
 
-// Function to add a new message to the chat content
-function addMessage(chatContent, sender, message) {
-  const messageElement = document.createElement('div');
-  messageElement.classList.add('message');
-  messageElement.dataset.sender = sender;
-  messageElement.textContent = `${sender}: ${message}`;
-  chatContent.appendChild(messageElement);
+// Function to add a message to the chat window
+function addMessage(chatContent, sender, content) {
+  // const chatContent = document.querySelector('#chat-content');
+
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${sender.toLowerCase()}`;
+
+  const contentP = document.createElement('p');
+  contentP.textContent = `${content}`;
+
+  // messageDiv.appendChild(timestampSpan);
+  messageDiv.appendChild(contentP);
+  chatContent.appendChild(messageDiv);
+
+  // Scroll to the bottom of the chat window
+  chatContent.scrollTop = chatContent.scrollHeight;
 }
+
+// Function to get the current timestamp in the format 'YYYY-MM-DD HH:MM:SS'
+function getCurrentTimestamp() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
 
 // Function to show the popup
 function showPopup() {
@@ -114,15 +159,37 @@ psychologistChatContent.addEventListener('dragover', (event) => {
 psychologistChatContent.addEventListener('drop', (event) => {
   event.preventDefault();
   const messageText = event.dataTransfer.getData('text/plain');
-  addMessage('You', messageText, psychologistChatContent);
+  addMessage( psychologistChatContent, 'You', messageText);
 });
 
-// Add message to the specified chat
-// function addMessage(user, message, chatContent) {
-//   const p = document.createElement('p');
-//   p.innerText = `${user}: ${message}`;
-//   chatContent.appendChild(p);
-//   chatContent.scrollTop = chatContent.scrollHeight;
-// }
+async function loadChats() {
+  chats = document.querySelectorAll('.chat-content')
+  chats.forEach(chat => {
+    loadChatHistory(chat)
+  })
+}
 
-// Rest of the code...
+async function loadChatHistory(chat) {
+  // chats = document.getElementsByClassName
+  console.log(chat.outerHTML)
+  route = getRoute(chat)
+  try {
+    const response = await fetch(route + '/chat/history');
+    const chatHistory = await response.text();
+    if (chatHistory) {
+      parser = new DOMParser()
+      html = parser.parseFromString(chatHistory, 'text/html')
+      messages = html.querySelectorAll('.message')
+      chat.innerHTML = ""
+      messages.forEach(message => {
+        chat.append(message)
+        chat.scrollTop = chat.scrollHeight
+      })
+    }
+  }
+  catch (error) {
+    console.log('Error loading chat history:', error);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', loadChats);

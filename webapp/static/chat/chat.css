@@ -10,7 +10,6 @@
   border: 1px solid #ccc;
   border-radius: 5px;
   padding: 20px;
-  overflow-y: scroll;
 }
 
 .chat-header {
@@ -80,6 +79,8 @@
 /* Styles for the two chat windows */
 .chat-content {
   margin-bottom: 10px;
+  overflow-y: scroll;
+  height: 80%;
 }
 
 #diary-chat-content {
@@ -100,6 +101,20 @@
   margin-bottom: 5px;
   padding: 5px;
   border-radius: 5px;
+}
+
+.message.user {
+  background-color: beige;
+  > p {
+    text-align: right;
+  }
+}
+
+.message:not(.user) {
+  background-color: teal;
+  > p {
+    text-align: left;
+  }
 }
 
 .message:hover {
