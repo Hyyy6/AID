@@ -26,7 +26,7 @@ def send(chat_type, mode="simple"):
     user_id = session['uuid']
     message = request.get_json()
 
-    user = User.get_user(user_id)
+    user = User.fetch_user_by_id(user_id)
     print(user, user.get_id(), user.get_name())
     user.append_chat(ChatMessage(user_id, message, "user", chat_type).spread())
     if user_id not in threads:
@@ -85,12 +85,21 @@ def send(chat_type, mode="simple"):
 @bp.route('/<chat_type>/chat/history', methods=['GET'])
 @login_required
 def get_history(chat_type):
-    user = User.get_user(session['uuid'])
+    user = User.fetch_user_by_id(session['uuid'])
     print(user.uuid + chat_type)
     messages = user.load_chat(chat_type)
     # print(messages)
     return render_template("chat/message.html.jinja", chat_messages=messages)
 
+@bp.route('/<chat_type>/clear', methods=['POST'])
+@login_required
+def clear_history(chat_type):
+    user = User.fetch_user_by_id(session['uuid'])
+    ret = user.clear_chat(chat_type)
+    if not ret:
+        return Response(status=500)
+    else:
+        return Response(status=200)
 
 @bp.route('/<chat_type>/rules/get', methods=['GET'])
 def get_file(chat_type):
@@ -103,11 +112,14 @@ def get_file(chat_type):
 
 @bp.route('/<chat_type>/rules/set', methods=['POST'])
 def set_file(chat_type):
-    file = request.files['file']
+    print(request.headers)
+    print(len(request.form))
+    file = request.form['file']
+    print(file)
     if file:
-        filename = f'rules_{chat_type}.txt'
-        filepath = os.path.join(current_app.config['RULES_DIR'], filename)
-        file.save(filepath)
+        # filename = f'rules_{chat_type}.txt'
+        # filepath = os.path.join(current_app.config['RULES_DIR'], filename)
+        # file.save(filepath)
         return "File uploaded successfully."
     else:
         return "No file uploaded."

@@ -44,13 +44,13 @@ def create_user(username: str, email: str, password: str) -> User:
         return -3
     
     user_id = get_user_id()
-    print(f"new user uuid {user_id}")
     alphabet = string.ascii_letters + string.digits
     salt = ''.join(secrets.choice(alphabet) for i in range(32))
     to_hash = ''.join(password+salt).encode('utf-8')
     hash = sha256(to_hash).hexdigest()
+    print(f"new user uuid {user_id} salt {salt}")
 
-    if not db.add_user(username, email, user_id, hash, salt):
+    if not User.add_user(username, email, user_id, hash, salt):
         return -4
 
     return User(user_id, username, email)
@@ -63,12 +63,12 @@ def check_credentials(username, password):
         sql = '''SELECT uuid from users WHERE name=?'''
     
 
-    print(f"login user {username}")
+    print(f"check user {username}")
     print(f"db - {current_app.db}")
     rows = current_app.db.exe_queries([(sql, (username, ))])[0]
     if not rows:
         print("no such user")
-        return None
+        return 0
     row = rows[0]
     uuid = row[0]
     print(uuid)
@@ -77,7 +77,7 @@ def check_credentials(username, password):
     rows = current_app.db.exe_queries([(sql, (uuid,))])[0]
     if len(rows) != 1:
         print("Internal user db err")
-        return None
+        return 0
     
     stored_hash = rows[0][0]
     salt = rows[0][1]
@@ -86,11 +86,11 @@ def check_credentials(username, password):
     hash = sha256(to_hash).hexdigest()
 
     if stored_hash != hash:
-        return None
+        return 0
     else:
         # with current_app.app_context():
             # sessions.SecureCookieSession.get()
-            return User.get_user(uuid)
+        return 1
 
 
 @bp.route('/test_form', methods=['POST'])
@@ -116,17 +116,21 @@ def submit_login():
 
     # Validate username and password (this is just an example)
     print(username, password)
-    user = check_credentials(username, password)
+    ret = check_credentials(username, password)
     # print(user.email)
-    if user:
+    if ret:
         response = make_response(redirect(url_for('home.index')))
+        user = User.fetch_user_by_name(username)
+        ret = login_user(user)
         # response.set_cookie()
         return response
-    ret = login_user(user)
-    print("login " + ret)
+    # else:
+        
+
+    # print("login " + user.)
     # Redirect back to login page if login fails
-    print(url_for('login'))
-    return redirect(url_for('login'))
+    print(url_for('.login'))
+    return redirect(url_for('.login'))
     
     # return redirect(url_for('.login'))
 
@@ -147,31 +151,28 @@ def submit_signup():
         email = request.form['email']
         password = request.form['password']
 
+        # Create new user object
         # Perform additional steps (e.g., store user in database)
         print(f"create user, db - {current_app.db}")
         user = create_user(username, email, password)
         if user == -1:
-            return render_template('signup.html.jinja', error="Invalid username")
+            return render_template('signup.html.jinja', resp_err="Invalid username")
         elif user == -2:
-            return render_template('signup.html.jinja', error="Invalid email")
+            return render_template('signup.html.jinja', resp_err="Invalid email")
         elif user ==  -3:
-            return render_template('signup.html.jinja', error="Invalid password")
-        elif user == -4:
-            return render_template('signup.html.jinja', error="Internal error")
-        
-        
-        # Log in the user after signup
-        # Create new user object
-        user = check_credentials(username, password)
+            return render_template('signup.html.jinja', resp_err="Invalid password")
+        elif user == -4 or not user:
+            return render_template('signup.html.jinja', resp_err="Internal error")
         print(user.email)
-        login_user(user)
-        if user:
+        # Log in the user after signup
+        ret = login_user(user)
+        if ret:
             print(f"user {user.username} is auth - {user.is_authenticated()}")
             return redirect(url_for('home.index'))
             # return render_template(webapp.home)
         else:
             print(f"could not login {user.username}")
-            return render_template('signup.html.jinja', error="internal login error")
+            return render_template('signup.html.jinja', resp_error="internal login error")
         
     print(url_for('url for signup'))
     return redirect(url_for('signup'))

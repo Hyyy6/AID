@@ -42,15 +42,16 @@ def init_app(app):
 
     @app.login_manager.user_loader
     def load_user(user_id):
+        user = None
     # Load user from user_id (e.g., fetch user from database)
     # Return the User object or None if not found
         with app.app_context():
-            user = User.get_user(user_id)
-            session['uuid'] = user.uuid
-            return user
-
+            print(f'get user by {user_id}')
+            user = User.fetch_user_by_id(user_id)
+            # print(user)
+        if user: session['uuid'] = user.uuid
+        return user
+    
     Session(app)
-
-
 
     return app

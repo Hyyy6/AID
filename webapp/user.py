@@ -28,7 +28,7 @@ class User(UserMixin):
     def get_name(self):
         return self.username
 
-    def get_user(uuid):
+    def fetch_user_by_id(uuid):
         user_sql = '''SELECT name, email from users WHERE uuid=?'''
 
         try:
@@ -44,6 +44,22 @@ class User(UserMixin):
             # session['uuid'] = uuid
             name, email = result[0]
             print("return " + name + " " + email)
+        except Exception as exception:
+            print(exception)
+            return None
+
+        return User(uuid, name, email)
+    
+    def fetch_user_by_name(name):
+        user_sql = '''SELECT uuid, email from users WHERE name=?'''
+
+        try:
+            result = current_app.db.exe_queries([(user_sql, (name, ))])[0]
+            if not result:
+                return None
+            # session['uuid'] = uuid
+            uuid, email = result[0]
+            print("return " + uuid + " " + email)
         except Exception as exception:
             print(exception)
             return None
@@ -87,13 +103,25 @@ class User(UserMixin):
             return result
         return result
     
+    def clear_chat(self, chat_type):
+        clear_chat_sql = '''DELETE FROM chats WHERE user_id=? AND chat_type=?'''
+        ret = None
+        print(f'clear {chat_type} chat')
+        try:
+            # db_handle = DBHandler.get_cursor()
+            ret = current_app.db.exe_queries([(clear_chat_sql, (self.get_id(), chat_type, ))])
+            print(f'clear {chat_type} chat for {self.username}; ret - {ret}')
+        except Exception as e:
+            print(e)
+        return ret
+    
     def add_user(username, email, uuid, hash, salt):
         """At this point all inputs are validated"""
         err = 0
         
         try:
-            db_handle = DBHandler.get_db()
-            db_cursor = DBHandler.get_cursor()
+            db_handle = current_app.db.get_db()
+            db_cursor = current_app.db.get_cursor()
             print(f"add user, db handle - {db_handle}, cursor - {db_cursor}")
             sql = '''INSERT INTO users (uuid, name, email) VALUES (?, ?, ?)'''
             params = (uuid, username, email)

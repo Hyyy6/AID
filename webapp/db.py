@@ -68,42 +68,6 @@ class DBHandler():
             self.get_db().rollback()
             return error
 
-
-def add_user(username, email, uuid, hash, salt):
-    """At this point all inputs are validated"""
-    err = 0
-    
-    try:
-        db_handle = current_app.db.get_db()
-        db_cursor = db_handle.cursor()
-        print(f"add user, db handle - {db_handle}, cursor - {db_cursor}")
-        sql = '''INSERT INTO users (uuid, name, email) VALUES (?, ?, ?)'''
-        params = (uuid, username, email)
-        db_cursor.execute(sql, params)
-        if not (err and db_cursor.lastrowid()):
-            err = -1
-
-        print("insert new credentials")
-        sql = '''INSERT INTO credentials (uuid, passwd, salt) VALUES (?, ?, ?)'''
-        params = (uuid, hash, salt)
-        db_cursor.execute(sql, params)
-        if not (err and db_cursor.lastrowid):
-            err = -2
-    except Exception as exception:
-        err = exception
-        print(type(err))
-        print(err.args)
-        print(err)
-
-    if err != 0:
-        print("succ")
-        err = True
-        db_handle.commit()
-    else:
-        db_handle.rollback()
-        
-    return err
-
 def check_id_exists(user_id):
     db_cursor = current_app.db.get_cursor()
     sql = '''SELECT * FROM users WHERE uuid=?'''
