@@ -26,7 +26,7 @@ CREATE TABLE chats (
 );
 
 CREATE TABLE chat_rules (
-    uuid CHAR(32),
+    user_id CHAR(32),
     chat_type TEXT NOT NULL,
     rules TEXT NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

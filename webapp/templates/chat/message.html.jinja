@@ -1,5 +1,7 @@
+{% if messages %}
 {% for message in chat_messages %}
 <div class="message {% if message.sender == 'user' %}user{% else %}assistant{% endif %}">
     <p>{{ message.content }}</p>
 </div>
 {% endfor %}
+{% endif %}

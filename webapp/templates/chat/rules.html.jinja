@@ -1,0 +1,28 @@
+<!-- {% block javascript %} -->
+<!-- <script type="text/javascript">
+    {% include "static/chat/rules_view.js" %}
+</script> -->
+<!-- <script src="{{ url_for('static', filename = 'chat/rules_view.js') }}"></script> -->
+<!-- <script src="static/chat/rules_view.js"></script> -->
+<!-- {% endblock %} -->
+
+<!-- Button to open the modal -->
+<button id="view-rules-button" onclick="openRulesModal()">View Rules</button>
+
+<!-- Modal -->
+<div id="rules-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeRulesModal()">&times;</span>
+    <div id="editor-container">
+      <textarea id="rules-editor"></textarea>
+    </div>
+    <div id="modal-buttons">
+      <button onclick="saveRules()">Save</button>
+      <button onclick="cancelRules()">Cancel</button>
+      <input type="file" id="upload-file" accept=".txt" onchange="loadFile(event)">
+      <button onclick="uploadFile()">Upload File</button>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="static/chat/rules_view.css" />

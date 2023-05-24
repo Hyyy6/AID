@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Make an HTTP request to save the file on the server
         var xhr = new XMLHttpRequest();
         xhr.open('POST', getRoute(this) + "/rules/set");
-        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        // xhr.setRequestHeader('Content-Type', 'multipart/form-data');
         xhr.onreadystatechange = function() {
             if (xhr.readyState === XMLHttpRequest.DONE) {
                 if (xhr.status === 200) {
