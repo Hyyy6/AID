@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS credentials;
 DROP TABLE IF EXISTS chats;
+DROP TABLE IF EXISTS chat_rules;
 
 CREATE TABLE users (
     uuid CHAR(32),
@@ -30,5 +31,6 @@ CREATE TABLE chat_rules (
     chat_type TEXT NOT NULL,
     rules TEXT NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(user_id) REFERENCES users (uuid)
+    FOREIGN KEY(user_id) REFERENCES users (uuid),
+    UNIQUE(user_id, chat_type)
 );

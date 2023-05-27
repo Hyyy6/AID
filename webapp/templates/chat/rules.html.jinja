@@ -1,11 +1,6 @@
-<!-- {% block javascript %} -->
-<!-- <script type="text/javascript">
-    {% include "static/chat/rules_view.js" %}
-</script> -->
-<!-- <script src="{{ url_for('static', filename = 'chat/rules_view.js') }}"></script> -->
-<!-- <script src="static/chat/rules_view.js"></script> -->
-<!-- {% endblock %} -->
+{% block div %}
 
+<script src="static/chat/rules_view.js"></script>
 <!-- Button to open the modal -->
 <button id="view-rules-button" onclick="openRulesModal()">View Rules</button>
 
@@ -26,3 +21,5 @@
 </div>
 
 <link rel="stylesheet" href="static/chat/rules_view.css" />
+
+{% endblock %}

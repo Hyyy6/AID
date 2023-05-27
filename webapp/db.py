@@ -25,11 +25,13 @@ class DBHandler():
         print (f"reset db {self.db}")
         with current_app.open_resource(os.path.join(current_app.instance_path, "db/db_init")) as f:
             try:
-                self.db.executescript(f.read().decode("utf8"))
+                ret = self.db.executescript(f.read().decode("utf8"))
+                return ret
             except Exception as err:
                 print(type(err))
                 print(err.args)
                 print(err)
+            return None
 
     def get_db(self):
         # print(self.db)
@@ -57,12 +59,12 @@ class DBHandler():
                 cursor = self.get_cursor()
                 cursor.execute(query, parameters)
                 rows = cursor.fetchall()
-                # for row in rows:
-                #     print(row[0])
+                for row in rows:
+                    print(row[0])
                 ret.append(rows)
 
             self.get_db().commit()
-            print(f'data len {len(ret)}')
+            print(f'data len {len(ret)}; data {ret}')
             return ret
         except sqlite3.Error as error:
             self.get_db().rollback()
@@ -94,7 +96,9 @@ def close_db(e=None):
 def init_db_command():
     """Clear existing data and create new tables."""
     print("init db from click")
-    DBHandler().reset()
+    if not DBHandler().reset():
+        click.echo("Failed to initialize the database")
+        return
     print(DBHandler().db)
     click.echo("Initialized the database.")
 

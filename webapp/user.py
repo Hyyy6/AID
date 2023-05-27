@@ -10,14 +10,16 @@ class User(UserMixin):
         self.username = username
         self.email = email
 
+        self.is_auth = 1
+
     def is_authenticated(self):
-        return True
+        return self.is_auth
 
     def is_active(self):   
-        return True           
+        return self.is_active           
 
     def is_anonymous(self):
-        return False          
+        return self.is_anonymous          
 
     def get_id(self):         
         return str(self.id)
@@ -66,55 +68,6 @@ class User(UserMixin):
 
         return User(uuid, name, email)
     
-    def load_chat(self, chat_type):
-        load_chat_sql = '''SELECT user_id, sender, message, chat_type, created from chats where user_id=? AND chat_type=?'''
-        result = None
-        messages = []
-
-        try:
-            print(f'load {self.username} {chat_type} chats')
-            # result = current_app.db.exe_queries([(load_chat_sql, (self.uuid, chat_type))])
-            result = current_app.db.exe_queries([(load_chat_sql, (self.uuid, chat_type, ))])[0]
-            print(len(result))
-            if not result or len(result) == 0:
-                print('error loading chat')
-                return None
-            for message_db in result:
-                # print(message_db)
-                # print(*message_db)
-                messages.append(ChatMessage(*message_db))
-            
-        except Exception as e:
-            print(f"Could not load {self.username} chat")
-            print(e)
-            return None
-        return messages
-    
-    def append_chat(self, data):
-        add_chat_sql = '''INSERT INTO chats (user_id, sender, message, chat_type) VALUES (?,?,?,?)'''
-        result = None
-
-        try:
-            print(f'append {self.username} chat')
-            result = current_app.db.exe_queries([(add_chat_sql, data)])
-        except Exception as e:
-            print(f'Could not append to {self.username} chat')
-            print(e)
-            return result
-        return result
-    
-    def clear_chat(self, chat_type):
-        clear_chat_sql = '''DELETE FROM chats WHERE user_id=? AND chat_type=?'''
-        ret = None
-        print(f'clear {chat_type} chat')
-        try:
-            # db_handle = DBHandler.get_cursor()
-            ret = current_app.db.exe_queries([(clear_chat_sql, (self.get_id(), chat_type, ))])
-            print(f'clear {chat_type} chat for {self.username}; ret - {ret}')
-        except Exception as e:
-            print(e)
-        return ret
-    
     def add_user(username, email, uuid, hash, salt):
         """At this point all inputs are validated"""
         err = 0
@@ -151,7 +104,7 @@ class User(UserMixin):
         return err
 
     def check_id_exists(user_id):
-        db_cursor = DBHandler.get_cursor()
+        db_cursor = current_app.db.get_cursor()
         sql = '''SELECT * FROM users WHERE uuid=?'''
         rows = []
         try:

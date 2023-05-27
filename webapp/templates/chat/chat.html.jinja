@@ -7,7 +7,8 @@
    <div class="chat-box" route="/diary/">
     <div class="chat-header">
       <h3>Diary Chat Assistant</h3>
-      <!-- {% include "chat/rules.html.jinja" %} -->
+      {% include "chat/rules.html.jinja" %}
+      <script src="{{ url_for('static', filename='chat/rules_view.js') }}"></script>
     </div>
     <div class="chat-content" id="diary-chat-content" >
       <div id="loading">
@@ -54,6 +55,4 @@
 </div>
 
 <script src="static/chat/chat.js"></script>
-<div>test</div>
-<!-- <script src="static/chat/rules_view.js"></script> -->
 {% endblock %}
