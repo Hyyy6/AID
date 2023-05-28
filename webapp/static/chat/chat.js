@@ -21,7 +21,6 @@ function getRoute(node) {
 // Diary Chat Assistant
 diaryForm.addEventListener('submit', (event) => {
   console.log(document.cookie);
-
   event.preventDefault();
   const message = diaryMessageInput.value;
   addMessage(diaryChatContent, 'user', message);
@@ -163,28 +162,38 @@ psychologistChatContent.addEventListener('drop', (event) => {
 });
 
 async function loadChats() {
+  console.log("LOAD CHATS")
   chats = document.querySelectorAll('.chat-content')
   chats.forEach(chat => {
+    // console.log(chat)
     loadChatHistory(chat)
   })
 }
 
 async function loadChatHistory(chat) {
   // chats = document.getElementsByClassName
-  console.log(chat.outerHTML)
-  route = getRoute(chat)
+  // console.log(chat.outerHTML)
+  let route = getRoute(chat)
+  console.log("route to load chat: " + route)
   try {
+    console.log(`load chat for ${route} into ${chat.id}`)
     const response = await fetch(route + '/chat/history');
-    const chatHistory = await response.text();
-    if (chatHistory) {
-      parser = new DOMParser()
-      html = parser.parseFromString(chatHistory, 'text/html')
-      messages = html.querySelectorAll('.message')
-      chat.innerHTML = ""
-      messages.forEach(message => {
-        chat.append(message)
-        chat.scrollTop = chat.scrollHeight
-      })
+    if (response.status == 200) {
+      chatHistory = await response.text();
+      // console.log(`loaded ${chatHistory}} for ${route}`)
+      if (chatHistory) {
+        parser = new DOMParser()
+        html = parser.parseFromString(chatHistory, 'text/html')
+        messages = html.querySelectorAll('.message')
+        chat.innerHTML = ""
+        messages.forEach(message => {
+          // console.log(message)
+          chat.append(message)
+          chat.scrollTop = chat.scrollHeight
+        })
+      }
+    } else if (response.status == 204) {
+      console.log("empty history for " + route)
     }
   }
   catch (error) {
@@ -192,4 +201,65 @@ async function loadChatHistory(chat) {
   }
 }
 
-window.addEventListener('DOMContentLoaded', loadChats);
+window.addEventListener('DOMContentLoaded', (event) => {
+  loadChats()
+  console.log("DOM loaded")
+  // const messageInput = document.getElementById('diary-message-input');
+
+  diaryMessageInput.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      if (!event.shiftKey) {
+        // diaryForm.submit(); // Handle sending the message
+      } else {
+        event.preventDefault(); // Prevent form submission  
+        // Append a new line to the input value
+        // console.log(event.target)
+
+        // console.log(this.value)
+        this.value += '\n';
+        // console.log(this.value)
+      }
+    }
+  });
+
+  diaryMessageInput.addEventListener('input', function (event) {
+    console.log(this)
+    console.log(event)
+    console.log(this.value)
+    this.style.height = 'auto';
+    this.style.height = `${this.scrollHeight}px`;
+
+
+
+    const diaryChatContent = document.getElementById('diary-chat-content');
+    diaryChatContent.scrollTop = diaryChatContent.scrollHeight; // Scroll to the bottom
+  });
+
+  // clear_diary = document.getElementById("clear-diary-chat")
+  console.log(clear_diary)
+  clear_diary.addEventListener('click', function (event) {
+    route = getRoute(this) + "/clear"
+
+    fetch(route, {
+      method: 'POST',
+    })
+      .then((response) => response.status)
+      .then((status) => {
+        console.log(status)
+        if (status == 200) {
+          diaryChatContent.innerHTML = '';
+        } else {
+          alert("could not clear chat"
+          )
+        }
+      })
+      .catch((err) => console.log(err))
+
+  })
+});
+
+
+const clear_diary = document.getElementById("clear-diary-chat")
+
+
+console.log(diaryForm);

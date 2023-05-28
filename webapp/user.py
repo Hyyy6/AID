@@ -34,11 +34,11 @@ class User(UserMixin):
         user_sql = '''SELECT name, email from users WHERE uuid=?'''
 
         try:
-            print("load user, set ses")
-            print(current_app.config['SECRET_KEY'])
-            print(current_app.db)
-            # db = DBHandler
-            print(current_app.db.get_db())
+            # print("load user, set ses")
+            # print(current_app.config['SECRET_KEY'])
+            # print(current_app.db)
+            # # db = DBHandler
+            # print(current_app.db.get_db())
             # result = current_app.db.exe_queries([(user_sql, (uuid, ))])[0]
             result = current_app.db.exe_queries([(user_sql, (uuid, ))])[0]
             if not result:

@@ -4,34 +4,39 @@
 {% include "layout.html.jinja" %}
 <link rel="stylesheet" href="static/chat/chat.css" />
 <div class="container">
-   <div class="chat-box" route="/diary/">
+  <div class="chat-box" route="/diary/">
     <div class="chat-header">
       <h3>Diary Chat Assistant</h3>
       {% include "chat/rules.html.jinja" %}
       <script src="{{ url_for('static', filename='chat/rules_view.js') }}"></script>
     </div>
-    <div class="chat-content" id="diary-chat-content" >
+    <div class="chat-content" id="diary-chat-content">
       <div id="loading">
         <p>Loading Chat...</p>
       </div>
     </div>
     <div class="chat-footer">
       <form class="message-form" id="diary-message-form" method="POST">
-        <input type="text" id="diary-message-input" name="message" placeholder="Type your message here..." required
-          autocomplete="off" />
-        <button type="submit">Send</button>
-        <div class="chat-mode">
-          <label for="diary-chat-mode">Chat Mode:</label>
-          <select name="chat-mode" id="diary-chat-mode">
-            <option value="simple">Simple Log</option>
-            <option value="conversation">Conversation Mode</option>
-          </select>
+        <div class="input-container">
+          <textarea id="diary-message-input" name="message" placeholder="Type your message here..." required
+            autocomplete="off"></textarea>
+          <button type="submit" class="send-button">&#10148;</button>
+        </div>
+        <div class="options-container">
+          <div class="chat-mode">
+            <label for="diary-chat-mode">Chat Mode:</label>
+            <select name="chat-mode" id="diary-chat-mode">
+              <option value="simple">Simple Log</option>
+              <option value="conversation">Conversation Mode</option>
+            </select>
+          </div>
+          <button type="button" id="clear-diary-chat" class="clear-button">Clear Chat</button>
         </div>
       </form>
     </div>
   </div>
 
-  <div class="chat-box" route="ass">
+  <div class="chat-box" route="psy_ass">
     <div class="chat-header">
       <h3>Psychologist Assistant</h3>
     </div>

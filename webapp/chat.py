@@ -30,11 +30,12 @@ def send(chat_type, mode="simple"):
     print(user, user.get_id(), user.get_name())
     append_chat(current_app.db, user, ChatMessage(user_id, message, "user", chat_type).spread())
     if user_id not in threads:
-        db_handle.execute("INSERT INTO users (name) VALUES (?)", (f'user_{user_id}',))
+        # current_app.db.get_cursor().execute("INSERT INTO users (name) VALUES (?)", (f'user_{user_id}',))
         # Create a new thread for this user and initialize it with the rules from the file
         try:
-            with open(os.path.join(current_app.config['RULES_DIR'], f'/models/{chat_type}_rules.txt'), 'r') as f:
-                rules = f.read()
+            # with open(os.path.join(current_app.config['RULES_DIR'], f'/models/{chat_type}_rules.txt'), 'r') as f:
+                # rules = f.read()
+            with get_rules(current_app.db, user, chat_type) as rules:
                 print(rules)
         except Exception as e:
             print(f'could not send chat ')
@@ -44,7 +45,7 @@ def send(chat_type, mode="simple"):
             threads[user_id] = openai.ChatCompletion.create(
                 model=current_app.config['MODEL_ID'],
                 messages=[
-                    {"role": "system", "content": "rules"}
+                    {"role": "system", "content": rules}
                 ],
                 max_tokens=1024,
                 n=1,
@@ -86,9 +87,14 @@ def send(chat_type, mode="simple"):
 @login_required
 def get_history(chat_type):
     user = User.fetch_user_by_id(session['uuid'])
-    print(user.uuid + chat_type)
+    print(f'get for {user.uuid} {chat_type}')
     messages = load_chat(current_app.db, user, chat_type)
-    # print(messages)
+    # print(len(messages))
+    print(messages)
+    # resp = Response()
+    if not messages:
+        print("empty history")
+        return Response(status=204)
     return render_template("chat/message.html.jinja", chat_messages=messages)
 
 @bp.route('/<chat_type>/clear', methods=['POST'])
@@ -162,6 +168,7 @@ def load_chat(db, user, chat_type):
             # print(message_db)
             # print(*message_db)
             messages.append(ChatMessage(*message_db))
+            # print(messages[-1].content)
 
     except Exception as e:
         print(f"Could not load {user.username} chat")
