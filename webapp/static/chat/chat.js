@@ -6,6 +6,10 @@ const diaryMessageInput = document.querySelector('#diary-message-input');
 const diaryChatModeSelect = document.querySelector('#diary-chat-mode');
 const diaryMessagesContainer = document.querySelector('#diary-messages-container');
 
+const inputClassName = '-message-input'
+const contentClassName = '-chat-content'
+const formClassName = '-message-form'
+
 function getRoute(node) {
   try {
     route_node = node.closest('[route]')
@@ -18,28 +22,23 @@ function getRoute(node) {
   return route
 }
 
-// Diary Chat Assistant
-diaryForm.addEventListener('submit', (event) => {
-  console.log(document.cookie);
-  event.preventDefault();
-  const message = diaryMessageInput.value;
-  addMessage(diaryChatContent, 'user', message);
+async function sendApppendChat(chat_type) {
+  const chatInput = document.getElementById(chat_type+inputClassName)
+  const message = chatInput.value;
+  const chatMode = document.getElementById(chat_type+'-chat-mode').value;
+  const chatContent = document.getElementById(chat_type+contentClassName)
+  // const chatForm = document.getElementById
+  addMessage(chatInput, 'user', message);
   
   // Determine the appropriate route based on the selected chat mode
-  const chatMode = diaryChatModeSelect.value;
   // const base_route = getRoute(this)
-  element = event.target
+  element = chatInput
   console.log(element)
   base_route = element.closest('[route]').getAttribute('route') + "/send"
+
   const route = (chatMode === 'simple') ? base_route + '/simple' : base_route + '/conversation';
   
   console.log(`SEND MSG to ${route}`)
-  console.log(diaryForm)
-  // console.log,
-  // form = new FormData(diaryForm)
-  // console.log(form.get('message'))
-  
-  // console.log(JSON.stringify(form.get('message')))
   
   console.log(JSON.stringify(message))
   // console.log(diaryChatContent)
@@ -57,13 +56,20 @@ diaryForm.addEventListener('submit', (event) => {
     html = parser.parseFromString(html_text, 'text/html')
     messages = html.querySelectorAll('.message')
     messages.forEach(message => {
-      diaryChatContent.append(message)
+      chatContent.append(message)
     })
-    diaryChatContent.scrollTop = diaryChatContent.scrollHeight
+    chatContent.scrollTop = chatContent.scrollHeight
   })
   .catch((err) => console.log(err))
 
-  diaryMessageInput.value = '';
+  chatInput.value = '';
+}
+
+// Diary Chat Assistant
+diaryForm.addEventListener('submit', (event) => {
+  console.log(document.cookie);
+  event.preventDefault();
+  sendApppendChat('diary')
 });
 // Psychologist Assistant
 psychologistForm.addEventListener('submit', (event) => {
@@ -204,33 +210,37 @@ async function loadChatHistory(chat) {
 window.addEventListener('DOMContentLoaded', (event) => {
   loadChats()
   console.log("DOM loaded")
-  // const messageInput = document.getElementById('diary-message-input');
-
-  diaryMessageInput.addEventListener('keydown', function (event) {
-    if (event.key === 'Enter') {
-      if (!event.shiftKey) {
-        // diaryForm.submit(); // Handle sending the message
-      } else {
-        event.preventDefault(); // Prevent form submission  
-        // Append a new line to the input value
-        // console.log(event.target)
-
-        // console.log(this.value)
-        this.value += '\n';
-        // console.log(this.value)
-      }
-    }
-  });
+  
+  function isOverflow(el) {
+    var curOverf = el.style.overflow;
+      
+    if ( !curOverf || curOverf === "visible" )
+        el.style.overflow = "hidden";
+      
+    var isOverflowing = el.clientWidth < el.scrollWidth
+        || el.clientHeight < el.scrollHeight;
+      
+    el.style.overflow = curOverf;
+      
+    return isOverflowing;
+}
 
   diaryMessageInput.addEventListener('input', function (event) {
+    node = this.element
     console.log(this)
-    console.log(event)
-    console.log(this.value)
-    this.style.height = 'auto';
-    this.style.height = `${this.scrollHeight}px`;
-
-
-
+    console.log(this.height)
+    console.log(this.element)
+    console.log(this.style.height)
+    if (isOverflow(this)) {
+      console.log("set auto")
+      this.style.overflow = 'auto';
+    }
+    if (this.style.height > 300) {
+      this.style.overflow = 'hidden'
+      this.style.height = 300
+    }
+    // this.style.height = `${this.scrollHeight}px`;
+    // console.log(this.height)
     const diaryChatContent = document.getElementById('diary-chat-content');
     diaryChatContent.scrollTop = diaryChatContent.scrollHeight; // Scroll to the bottom
   });
