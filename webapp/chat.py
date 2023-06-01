@@ -29,58 +29,61 @@ def send(chat_type, mode="simple"):
     user = User.fetch_user_by_id(user_id)
     print(user, user.get_id(), user.get_name())
     append_chat(current_app.db, user, ChatMessage(user_id, message, "user", chat_type).spread())
-    if user_id not in threads:
-        # current_app.db.get_cursor().execute("INSERT INTO users (name) VALUES (?)", (f'user_{user_id}',))
-        # Create a new thread for this user and initialize it with the rules from the file
-        try:
-            # with open(os.path.join(current_app.config['RULES_DIR'], f'/models/{chat_type}_rules.txt'), 'r') as f:
-                # rules = f.read()
-            with get_rules(current_app.db, user, chat_type) as rules:
-                print(rules)
-        except Exception as e:
-            print(f'could not send chat ')
-            print(e)
+    if mode == "conversation":
+        if user_id not in threads:
+            # current_app.db.get_cursor().execute("INSERT INTO users (name) VALUES (?)", (f'user_{user_id}',))
+            # Create a new thread for this user and initialize it with the rules from the file
+            try:
+                # with open(os.path.join(current_app.config['RULES_DIR'], f'/models/{chat_type}_rules.txt'), 'r') as f:
+                    # rules = f.read()
+                with get_rules(current_app.db, user, chat_type) as rules:
+                    print(rules)
+            except Exception as e:
+                print(f'could not send chat ')
+                print(e)
+
+            if not debug:
+                threads[user_id] = openai.ChatCompletion.create(
+                    model=current_app.config['MODEL_ID'],
+                    messages=[
+                        {"role": "system", "content": rules}
+                    ],
+                    max_tokens=1024,
+                    n=1,
+                    stop=None,
+                    user=user_id
+                )
+            else:
+                threads[user_id] = stub_chat("test", "test")
+        # Continue the thread with the user's message and return the response
+        print(threads[user_id])
+
 
         if not debug:
-            threads[user_id] = openai.ChatCompletion.create(
+            response = openai.ChatCompletion.create(
                 model=current_app.config['MODEL_ID'],
                 messages=[
-                    {"role": "system", "content": rules}
+                    {"role": "user", "content": threads[user_id].choices[0].message.content + message}
                 ],
                 max_tokens=1024,
                 n=1,
-                stop=None,
-                user=user_id
+                stop=None
             )
         else:
-            threads[user_id] = stub_chat("test", "test")
-    # Continue the thread with the user's message and return the response
-    print(threads[user_id])
+            response = stub_chat(f"answer for {message}", "assistant")
 
-
-    if not debug:
-        response = openai.ChatCompletion.create(
-            model=current_app.config['MODEL_ID'],
-            messages=[
-                {"role": "user", "content": threads[user_id].choices[0].message.content + message}
-            ],
-            max_tokens=1024,
-            n=1,
-            stop=None
-        )
-    else:
-        response = stub_chat(f"answer for {message}", "assistant")
-
-    threads[user_id] = response
-    print(response.choices)
-    print(response.choices[0].message.content)
-    # db_log_append(user_id, message, response.choices[0].message.content, db_handle)
-    message = ChatMessage(user_id, response.choices[0].message.content, "assistant", "diary")
-    append_chat(current_app.db, user, message.spread())
-    chat_history = render_template("chat/message.html.jinja", chat_messages=[message])
-    # import flask
-    # flask.re
-    return chat_history
+        threads[user_id] = response
+        print(response.choices)
+        print(response.choices[0].message.content)
+        # db_log_append(user_id, message, response.choices[0].message.content, db_handle)
+        message = ChatMessage(user_id, response.choices[0].message.content, "assistant", "diary")
+        append_chat(current_app.db, user, message.spread())
+        chat_history = render_template("chat/message.html.jinja", chat_messages=[message])
+        # import flask
+        # flask.re
+        return chat_history
+    elif mode == "simple":
+        return "OK"
 
 
 @bp.route('/<chat_type>/chat/history', methods=['GET'])

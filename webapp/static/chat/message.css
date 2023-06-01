@@ -1,0 +1,37 @@
+/* Styles for the messages in chat window */
+.message {
+    cursor: pointer;
+    margin-bottom: 5px;
+    padding: 5px;
+    border-radius: 5px;
+
+    >p {
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+    }
+}
+
+.message.user {
+    background-color: beige;
+
+    >p {
+        text-align: right;
+    }
+}
+
+.message:not(.user) {
+    background-color: teal;
+
+    >p {
+        text-align: left;
+    }
+}
+
+.message:hover {
+    background-color: #f0f0f0;
+}
+
+.selected {
+    background-color: #007bff;
+    color: #fff;
+}

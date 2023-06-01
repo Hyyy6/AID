@@ -95,37 +95,6 @@
   padding: 10px;
 }
 
-/* Styles for the messages in the first chat window */
-.message {
-  cursor: pointer;
-  margin-bottom: 5px;
-  padding: 5px;
-  border-radius: 5px;
-}
-
-.message.user {
-  background-color: beige;
-  > p {
-    text-align: right;
-  }
-}
-
-.message:not(.user) {
-  background-color: teal;
-  > p {
-    text-align: left;
-  }
-}
-
-.message:hover {
-  background-color: #f0f0f0;
-}
-
-.selected {
-  background-color: #007bff;
-  color: #fff;
-}
-
 /* Context menu */
 .context-menu {
   position: absolute;
@@ -146,14 +115,13 @@
   border: 1px solid #ccc;
   border-radius: 5px;
   padding: 20px;
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .chat-header {
   margin-bottom: 10px;
 }
-
 .chat-content {
   flex-grow: 1;
   overflow-y: auto;
@@ -168,7 +136,6 @@
   align-items: stretch;
   margin-top: 10px;
 }
-
 .input-container {
   display: flex;
   align-items: center;
@@ -188,10 +155,10 @@
   background-color: #007bff;
   color: #fff;
   border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  padding: 0 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 10px;
 }
 
 .options-container {
@@ -208,4 +175,8 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
+}
+
+.debug-toggle {
+  display: flex;
 }

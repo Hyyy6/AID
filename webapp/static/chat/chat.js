@@ -23,12 +23,12 @@ function getRoute(node) {
 }
 
 async function sendApppendChat(chat_type) {
-  const chatInput = document.getElementById(chat_type+inputClassName)
+  const chatInput = document.getElementById(chat_type + inputClassName)
   const message = chatInput.value;
-  const chatMode = document.getElementById(chat_type+'-chat-mode').value;
-  const chatContent = document.getElementById(chat_type+contentClassName)
+  const chatMode = document.getElementById(chat_type + '-chat-mode').value;
+  const chatContent = document.getElementById(chat_type + contentClassName)
   // const chatForm = document.getElementById
-  addMessage(chatInput, 'user', message);
+  addMessage(chatContent, 'user', message);
   
   // Determine the appropriate route based on the selected chat mode
   // const base_route = getRoute(this)
@@ -56,6 +56,7 @@ async function sendApppendChat(chat_type) {
     html = parser.parseFromString(html_text, 'text/html')
     messages = html.querySelectorAll('.message')
     messages.forEach(message => {
+      console.log(message)
       chatContent.append(message)
     })
     chatContent.scrollTop = chatContent.scrollHeight
@@ -210,27 +211,24 @@ async function loadChatHistory(chat) {
 window.addEventListener('DOMContentLoaded', (event) => {
   loadChats()
   console.log("DOM loaded")
-  
+
   function isOverflow(el) {
     var curOverf = el.style.overflow;
-      
-    if ( !curOverf || curOverf === "visible" )
-        el.style.overflow = "hidden";
-      
+
+    if (!curOverf || curOverf === "visible")
+      el.style.overflow = "hidden";
+
     var isOverflowing = el.clientWidth < el.scrollWidth
-        || el.clientHeight < el.scrollHeight;
-      
+      || el.clientHeight < el.scrollHeight;
+
     el.style.overflow = curOverf;
-      
+
     return isOverflowing;
-}
+  }
 
   diaryMessageInput.addEventListener('input', function (event) {
-    node = this.element
-    console.log(this)
-    console.log(this.height)
-    console.log(this.element)
-    console.log(this.style.height)
+    // node = this.target.element
+    // console.log(this)
     if (isOverflow(this)) {
       console.log("set auto")
       this.style.overflow = 'auto';
@@ -243,6 +241,21 @@ window.addEventListener('DOMContentLoaded', (event) => {
     // console.log(this.height)
     const diaryChatContent = document.getElementById('diary-chat-content');
     diaryChatContent.scrollTop = diaryChatContent.scrollHeight; // Scroll to the bottom
+  });
+
+  diaryMessageInput.addEventListener('keydown', function (event) {
+    console.log(this)
+    if (event.key === 'Enter') {
+      if (!event.shiftKey) {
+        event.preventDefault(); // Prevent form submission
+        sendApppendChat('diary')
+      } else {
+        // // Append a new line to the input value
+        // this.value += '\n';
+        // this.style.height = 'auto';
+        // this.style.height = `${this.scrollHeight}px`;
+      }
+    }
   });
 
   // clear_diary = document.getElementById("clear-diary-chat")
@@ -265,6 +278,32 @@ window.addEventListener('DOMContentLoaded', (event) => {
       })
       .catch((err) => console.log(err))
 
+  })
+
+  debug_button = document.getElementById('debug_toggle')
+  debug_button.addEventListener('change', function (event) {
+    console.log(event.target)
+    console.log(event.target.checked)
+    console.log(this)
+    console.log(this.checked)
+    debug = 0;
+    if (event.target.checked)
+      debug = 1;
+
+    fetch('/debug', {
+      method: 'POST',
+      body: JSON.stringify({ 'debug': debug }),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    })
+      .then((response) => {
+        if (response.status == 200)
+          console.log(response.text())
+        else
+          console.log('failed to set debug mode')
+      })
   })
 });
 

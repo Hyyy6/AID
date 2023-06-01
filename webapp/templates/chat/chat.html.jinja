@@ -3,6 +3,7 @@
 {% block body %}
 {% include "layout.html.jinja" %}
 <link rel="stylesheet" href="static/chat/chat.css" />
+<link rel="stylesheet" href="{{ url_for('static', filename='chat/message.css') }}">
 <div class="container">
   <div class="chat-box" route="/diary/">
     <div class="chat-header">
@@ -30,8 +31,12 @@
               <option value="conversation">Conversation Mode</option>
             </select>
           </div>
+          <div class="debug-toggle" id="debug_toggle">
+            <input type="checkbox">
+            <p>Debug</p>
+          </div>
           <button type="button" id="clear-diary-chat" class="clear-button">Clear Chat</button>
-        </div>
+          </div>
       </form>
     </div>
   </div>
