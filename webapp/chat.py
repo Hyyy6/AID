@@ -3,12 +3,13 @@ from flask import current_app, render_template, request, flash, Response, Bluepr
 from flask_login import login_required
 from webapp.utils.stub_chat import stub_chat
 from .user import User, ChatMessage
-import os
+from utils.log import MyAppLogger
 
 bp = Blueprint("chat", __name__)
 
 threads = {}
 
+logger = MyAppLogger('app_logger')
 
 @bp.route('/chat', methods=['GET'])
 @login_required
@@ -21,7 +22,7 @@ def index():
 @login_required
 def send(chat_type, mode="simple"):
     debug = current_app.config['DEBUG'] # enable debug
-    print(f"receive chat type {chat_type} msg")
+    print(f"receive chat type {chat_type} msg (debug {debug})")
 
     user_id = session['uuid']
     message = request.get_json()
@@ -230,3 +231,12 @@ def get_rules(db, user, chat_type):
     except Exception as e:
         print(e)
     return rules
+
+
+@bp.route('/debug', methods=['POST'])
+def set_debug():
+    debug = request.json
+    print(debug)
+    print(debug['debug'])
+    current_app.config['DEBUG'] = debug['debug']
+    return f'Set debug to {debug}'
