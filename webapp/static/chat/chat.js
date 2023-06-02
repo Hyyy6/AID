@@ -244,7 +244,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
   });
 
   diaryMessageInput.addEventListener('keydown', function (event) {
-    console.log(this)
+    // console.log(this)
     if (event.key === 'Enter') {
       if (!event.shiftKey) {
         event.preventDefault(); // Prevent form submission
@@ -259,9 +259,29 @@ window.addEventListener('DOMContentLoaded', (event) => {
   });
 
   // clear_diary = document.getElementById("clear-diary-chat")
-  console.log(clear_diary)
-  clear_diary.addEventListener('click', function (event) {
-    route = getRoute(this) + "/clear"
+  console.log(clear_diary_chat_button)
+  clear_diary_chat_button.addEventListener('click', function (event) {
+    route = getRoute(this) + "/clear/chat"
+
+    fetch(route, {
+      method: 'POST',
+    })
+      .then((response) => response.status)
+      .then((status) => {
+        console.log(status)
+        if (status == 200) {
+          diaryChatContent.innerHTML = '';
+        } else {
+          alert("could not clear chat"
+          )
+        }
+      })
+      .catch((err) => console.log(err))
+
+  })
+
+  clear_diary_chat_button.addEventListener('click', function (event) {
+    route = getRoute(this) + "/clear/thread"
 
     fetch(route, {
       method: 'POST',
@@ -308,7 +328,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
 });
 
 
-const clear_diary = document.getElementById("clear-diary-chat")
+const clear_diary_chat_button = document.getElementById("clear-diary-chat")
+const clear_diary_context_button = document.getElementById("clear-diary-context")
 
 
 console.log(diaryForm);
