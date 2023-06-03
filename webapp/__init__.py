@@ -29,7 +29,7 @@ def main():
             # store the database in the instance folder
             DATABASE=os.path.join(app.instance_path, "db/user.db"),
             MODEL_ID = "gpt-3.5-turbo",
-            RULES_DIR = os.path.join(app.instance_path, "model/rules"),
+            # RULES_DIR = os.path.join(app.instance_path, "model/rules"),
         )
 
     app = init_app(app)

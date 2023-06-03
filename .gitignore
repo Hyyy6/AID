@@ -1,2 +1,6 @@
 .venv
+.vscode
+flask_session
+instance
+__pycache__
 env_var.sh
