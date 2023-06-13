@@ -24,12 +24,22 @@
           <button type="submit" class="send-button">&#10148;</button>
         </div>
         <div class="options-container">
-          <div class="chat-mode">
-            <label for="diary-chat-mode">Chat Mode:</label>
-            <select name="chat-mode" id="diary-chat-mode">
-              <option value="simple">Simple Log</option>
-              <option value="conversation">Conversation Mode</option>
-            </select>
+          <div class="chat-settings">
+            <!-- <div class="chat-mode"> -->
+              <label for="diary-chat-mode">Chat Mode:</label>
+              <select name="chat-mode" id="diary-chat-mode">
+                <option value="simple">Simple Log</option>
+                <option value="conversation">Conversation Mode</option>
+              </select>
+            <!-- </div> -->
+            <!-- <div class="chat-role"> -->
+              <label for="chat-role-select">Role:</label>
+              <select name="chat-role" id="chat-role-select">
+                <option value="system">system</option>
+                <option value="user">user</option>
+                <option value="ass">ass</option>
+              </select>
+            <!-- </div> -->
           </div>
           <div class="debug-toggle" id="debug_toggle">
             <input type="checkbox">

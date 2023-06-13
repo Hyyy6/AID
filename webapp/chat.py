@@ -26,7 +26,7 @@ def send(chat_type, mode="simple"):
     logger.log_def(f"receive chat type {chat_type} msg (debug {debug})")
 
     user_id = session['uuid']
-    message = request.get_json()
+    user_request = request.get_json()
 
     user = User.fetch_user_by_id(user_id)
     logger.log_def(f' user {user} id {user.get_id()} name {user.get_name()}')

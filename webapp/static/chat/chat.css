@@ -163,9 +163,14 @@
 
 .options-container {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   margin-top: 10px;
+  > .chat-settings {
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 .clear-button {
