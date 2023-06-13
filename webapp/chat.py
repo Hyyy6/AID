@@ -7,7 +7,7 @@ from .utils.log import MyAppLogger
 
 bp = Blueprint("chat", __name__)
 
-threads = {}
+user_threads = {}
 
 logger = MyAppLogger('app_logger')
 logger.set_log_level('DEBUG')
@@ -30,9 +30,10 @@ def send(chat_type, mode="simple"):
 
     user = User.fetch_user_by_id(user_id)
     logger.log_def(f' user {user} id {user.get_id()} name {user.get_name()}')
-    append_chat(current_app.db, user, ChatMessage(user_id, message, "user", chat_type).spread())
+    new_message = ChatMessage(user_id, message, "user", chat_type)
+    append_chat(current_app.db, user, new_message.spread())
     if mode == "conversation":
-        if user_id not in threads:
+        if user_id not in user_threads:
             # current_app.db.get_cursor().execute("INSERT INTO users (name) VALUES (?)", (f'user_{user_id}',))
             # Create a new thread for this user and initialize it with the rules from the file
             # try:
@@ -43,10 +44,13 @@ def send(chat_type, mode="simple"):
             # except Exception as e:
             #     logger.log_with_metadata(100, f'could not send chat ', True)
             #     logger.log_with_metadata(100, e)
+            user_threads[user_id] = []
+            user_threads[user_id].append(message)
 
             if not debug:
+                print(user_threads[user_id])
                 print(rules)
-                threads[user_id] = openai.ChatCompletion.create(
+                response = openai.ChatCompletion.create(
                     model=current_app.config['MODEL_ID'],
                     messages=[
                         {"role": "system", "content": rules}
@@ -56,21 +60,24 @@ def send(chat_type, mode="simple"):
                     stop=None,
                     user=user_id
                 )
+                # print(response)
+                # print(response.choices)
+                # print(response.choices[0].message.content)
             else:
-                threads[user_id] = stub_chat("test", "test")
+                # print(user_threads[user_id])
+                user_threads[user_id].append(stub_chat("test", "test").choices[0].message)
         # Continue the thread with the user's message and return the response
-        logger.log_def(threads[user_id])
+        logger.log_def(user_threads[user_id])
 
 
         if not debug:
-            logger.log_def(threads[user_id].choices[0].message.content)
-            new_message = Message('user', message)
-            # threads[user_id].messages.append()
+            # logger.log_def(user_threads[user_id])
+            new_content_msg = Message('user', message)
+
+            user_threads[user_id].append(new_content_msg)
             response = openai.ChatCompletion.create(
                 model=current_app.config['MODEL_ID'],
-                messages=[
-                    {"role": "user", "content": threads[user_id].choices[0].message.content + message}
-                ],
+                messages=user_threads[user_id],
                 max_tokens=1024,
                 n=1,
                 stop=None,
@@ -78,7 +85,8 @@ def send(chat_type, mode="simple"):
         else:
             response = stub_chat(f"answer for {message}", "assistant")
 
-        threads[user_id] = response
+        print(response)
+        user_threads[user_id].append(response.choices[0].message)
         logger.log_def(response.choices)
         logger.log_def(response.choices[0].message.content)
         # db_log_append(user_id, message, response.choices[0].message.content, db_handle)
@@ -166,7 +174,6 @@ def set_rules(chat_type):
                     stop=None,
                     user=user_id
                 )
-            threads[user_id] = response
             logger.log_def(response.choices[0].message.content)
         except Exception as e:
             logger.log_with_metadata(100, e, True)
@@ -179,6 +186,31 @@ def set_rules(chat_type):
 
 def load_chat(db, user, chat_type):
     load_chat_sql = '''SELECT user_id, sender, message, chat_type, created from chats where user_id=? AND chat_type=?'''
+    result = None
+    messages = []
+
+    try:
+        logger.log_def(f'load {user.username} {chat_type} chats')
+        # result = current_app.db.exe_queries([(load_chat_sql, (self.uuid, chat_type))])
+        result = db.exe_queries([(load_chat_sql, (user.uuid, chat_type, ))])[0]
+        logger.log_def(len(result))
+        if not result or len(result) == 0:
+            logger.log_with_metadata(40, 'error loading chat')
+            return None
+        for message_db in result:
+            # logger.log_def(message_db)
+            # logger.log_def(*message_db)
+            messages.append(ChatMessage(*message_db))
+            # logger.log_def(messages[-1].content)
+
+    except Exception as e:
+        logger.log_with_metadata(100, f"Could not load {user.username} chat", True)
+        logger.log_with_metadata(100, e)
+        return None
+    return messages
+
+def load_thread(db, user, chat_type):
+    load_thread_sql = '''SELECT sender, message, chat_type, created from chats where user_id=? AND chat_type=?'''
     result = None
     messages = []
 

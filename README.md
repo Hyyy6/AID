@@ -39,7 +39,9 @@
 
    ```
    #### initialize empty database
-   (.venv) $ flask --app webapp init_db
+   (.venv) $ flask --app webapp init-db
+   #### export required environment variables, e.g.
+   (.venv) $ . env_var.sh
    #### run the app. Options --debug, --host=<ip addr>
    (.venv) $ flask --app webapp run 
    ```

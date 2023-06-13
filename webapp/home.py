@@ -3,8 +3,6 @@ from flask import Blueprint, flash, url_for, redirect
 
 bp = Blueprint("home", __name__)
 
-threads = {}
-
 @bp.route('/', methods=['GET'])
 def index():
     print("get home")

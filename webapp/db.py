@@ -28,7 +28,7 @@ class DBHandler():
     def reset(self):
         self.init()
         logger.log_def(f"reset db {self.db}")
-        with current_app.open_resource(os.path.join(current_app.instance_path, "db/db_init")) as f:
+        with current_app.open_resource("static/db_init") as f:
             try:
                 ret = self.db.executescript(f.read().decode("utf8"))
                 return ret
