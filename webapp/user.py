@@ -119,12 +119,13 @@ class User(UserMixin):
         
 
 class ChatMessage():
-    def __init__(self, user_id, content, sender, type, timestamp=None):
+    def __init__(self, user_id, content, mode, sender, type, timestamp=None):
         self.user_id = user_id
         self.content = content
+        self.mode = mode
         self.sender = sender
         self.type = type
         self.timestamp = timestamp
 
     def spread(self):
-        return (self.user_id, self.content, self.sender, self.type, )
+        return (self.user_id, self.content, self.mode, self.sender, self.type, )

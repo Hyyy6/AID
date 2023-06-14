@@ -20,6 +20,7 @@ CREATE TABLE credentials (
 CREATE TABLE chats (
     user_id CHAR(32),
     message TEXT NOT NULL,
+    chat_mode TEXT NOT NULL,
     sender TEXT NOT NULL,
     chat_type TEXT NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

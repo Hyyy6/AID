@@ -71,7 +71,7 @@ class MyAppLogger(logging.Logger):
         self.file_handler.setLevel(level.upper())
         self.console_handler.setLevel(level.upper())
 
-    def log_with_metadata(self, level, message, timestamp=False):
+    def log_with_metadata(self, level, message, depth = 0, timestamp=False):
         """
         Log a message with metadata such as function name and line number.
 
@@ -80,7 +80,9 @@ class MyAppLogger(logging.Logger):
             message (str): Log message.
             timestamp (bool, optional): Include timestamp in the log message. Default is False.
         """
-        frame = inspect.currentframe().f_back.f_back
+        frame = inspect.currentframe().f_back
+        for i in range(0, depth):
+            frame = frame.f_back
         func_name = frame.f_code.co_name
         line_number = frame.f_lineno
 
@@ -91,10 +93,10 @@ class MyAppLogger(logging.Logger):
         self.log(level, log_message)
 
     def log_info(self, message):
-        self.log_with_metadata(logging.INFO, message)
+        self.log_with_metadata(logging.INFO, message, 1)
 
     def log_def(self, message):
-        self.log_with_metadata(self.level, message)
+        self.log_with_metadata(self.level, message, 1)
 
     @staticmethod
     def get_timestamp():

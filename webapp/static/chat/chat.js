@@ -10,6 +10,7 @@ const inputClassName = '-message-input'
 const contentClassName = '-chat-content'
 const formClassName = '-message-form'
 
+
 function getRoute(node) {
   try {
     route_node = node.closest('[route]')
@@ -22,11 +23,20 @@ function getRoute(node) {
   return route
 }
 
+class UserRequest {
+  constructor(message, role, mode) {
+    this.message = message;
+    this.role = role;
+    this.mode = mode;
+  }
+}
+
 async function sendApppendChat(chat_type) {
   const chatInput = document.getElementById(chat_type + inputClassName)
   const message = chatInput.value;
   const chatMode = document.getElementById(chat_type + '-chat-mode').value;
-  const chatContent = document.getElementById(chat_type + contentClassName)
+  const chatContent = document.getElementById(chat_type + contentClassName);
+  const chatRole = document.getElementById("chat-role-select").value;
   // const chatForm = document.getElementById
   addMessage(chatContent, 'user', message);
   
@@ -34,17 +44,19 @@ async function sendApppendChat(chat_type) {
   // const base_route = getRoute(this)
   element = chatInput
   console.log(element)
-  base_route = element.closest('[route]').getAttribute('route') + "/send"
+  const route = element.closest('[route]').getAttribute('route') + "/send"
 
-  const route = (chatMode === 'simple') ? base_route + '/simple' : base_route + '/conversation';
+  // const route = (chatMode === 'simple') ? base_route + '/simple' : base_route + '/conversation';
+  let userRequest = new UserRequest(message, chatRole, chatMode)
   
-  console.log(`SEND MSG to ${route}`)
-  
-  console.log(JSON.stringify(message))
+  // console.log(`SEND MSG to ${route}`)
+  console.log(route)
+  console.log(JSON.stringify(userRequest))
   // console.log(diaryChatContent)
+  // return
   fetch(route, {
     method: 'POST',
-    body: JSON.stringify(message),
+    body: JSON.stringify(userRequest),
     headers: {
       'Content-Type': 'application/json'
     }
@@ -70,6 +82,7 @@ async function sendApppendChat(chat_type) {
 diaryForm.addEventListener('submit', (event) => {
   console.log(document.cookie);
   event.preventDefault();
+  // return;
   sendApppendChat('diary')
 });
 // Psychologist Assistant

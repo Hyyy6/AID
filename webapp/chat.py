@@ -4,6 +4,7 @@ from flask_login import login_required
 from webapp.utils.stub_chat import stub_chat, Message
 from .user import User, ChatMessage
 from .utils.log import MyAppLogger
+import json
 
 bp = Blueprint("chat", __name__)
 
@@ -19,7 +20,17 @@ def index():
     flash("chat", "info")
     return render_template('chat/chat.html.jinja')
 
-@bp.route('/<chat_type>/send/<mode>', methods=['POST'])
+@bp.route('/<chat_type>/export', methods=['GET'])
+@login_required
+def export_thread(chat_type, mode="simple"):
+    return "OK"
+
+@bp.route('/<chat_type>/import', methods=['POST'])
+@login_required
+def import_thread(chat_type, mode="simple"):
+    return "OK"
+
+@bp.route('/<chat_type>/send', methods=['POST'])
 @login_required
 def send(chat_type, mode="simple"):
     debug = current_app.config['DEBUG'] # enable debug
@@ -28,10 +39,13 @@ def send(chat_type, mode="simple"):
     user_id = session['uuid']
     user_request = request.get_json()
 
+    chat_mode = user_request['mode']
+    msg_content = user_request['message']
+    role = user_request['role']
     user = User.fetch_user_by_id(user_id)
     logger.log_def(f' user {user} id {user.get_id()} name {user.get_name()}')
-    new_message = ChatMessage(user_id, message, "user", chat_type)
-    append_chat(current_app.db, user, new_message.spread())
+    new_message = ChatMessage(user_id, msg_content, chat_mode, role, chat_type)
+    response = None
     if mode == "conversation":
         if user_id not in user_threads:
             # current_app.db.get_cursor().execute("INSERT INTO users (name) VALUES (?)", (f'user_{user_id}',))
@@ -44,55 +58,71 @@ def send(chat_type, mode="simple"):
             # except Exception as e:
             #     logger.log_with_metadata(100, f'could not send chat ', True)
             #     logger.log_with_metadata(100, e)
-            user_threads[user_id] = []
-            user_threads[user_id].append(message)
-
-            if not debug:
-                print(user_threads[user_id])
-                print(rules)
-                response = openai.ChatCompletion.create(
-                    model=current_app.config['MODEL_ID'],
-                    messages=[
-                        {"role": "system", "content": rules}
-                    ],
-                    max_tokens=1024,
-                    n=1,
-                    stop=None,
-                    user=user_id
-                )
-                # print(response)
-                # print(response.choices)
-                # print(response.choices[0].message.content)
-            else:
-                # print(user_threads[user_id])
-                user_threads[user_id].append(stub_chat("test", "test").choices[0].message)
+            thread = []
+            user_threads[user_id] = thread
+            rule_message = ChatMessage(user_id, rules, chat_mode, role, chat_type)
+            thread.append(rule_message)
+        else: #user in threads
+            # new_message = ChatMessage(user_id, msg_content, chat_mode, role, chat_type)
+            append_chat(current_app.db, user, new_message.spread())
+            thread = user_threads[user_id]
+            thread.append(new_message)
         # Continue the thread with the user's message and return the response
-        logger.log_def(user_threads[user_id])
-
-
         if not debug:
-            # logger.log_def(user_threads[user_id])
-            new_content_msg = Message('user', message)
-
-            user_threads[user_id].append(new_content_msg)
             response = openai.ChatCompletion.create(
                 model=current_app.config['MODEL_ID'],
                 messages=user_threads[user_id],
                 max_tokens=1024,
                 n=1,
                 stop=None,
+                user=user_id
             )
+            print(json.dumps(response))
+            # print(response.choices)
+            # print(response.choices[0].message.content)
         else:
-            response = stub_chat(f"answer for {message}", "assistant")
+            # print(user_threads[user_id])
+            response = stub_chat("test", "test")
+        new_message = ChatMessage(user_id, response.choices[0].message.content, chat_mode, "assistant", chat_type)
+        user_threads[user_id].append(new_message)
+        append_chat(current_app.db, user, new_message.spread())
+        logger.log_def(f'append as {response.choices[0].message.role}')
+    elif mode == "simple": ### mode simple ###
+        if user_id not in user_threads:
+            thread = []
+            user_threads[user_id] = thread
+        logger.log_info("add to simple chat")
+    # new_message = ChatMessage(user_id, msg_content, chat_mode, role, chat_type)
+        append_chat(current_app.db, user, new_message.spread())
+        thread = user_threads[user_id]
+        thread.append(new_message)
+        # logger.log_def(user_threads[user_id])
 
-        print(response)
-        user_threads[user_id].append(response.choices[0].message)
-        logger.log_def(response.choices)
-        logger.log_def(response.choices[0].message.content)
-        # db_log_append(user_id, message, response.choices[0].message.content, db_handle)
-        message = ChatMessage(user_id, response.choices[0].message.content, "assistant", "diary")
-        append_chat(current_app.db, user, message.spread())
-        chat_history = render_template("chat/message.html.jinja", chat_messages=[message])
+
+        # if not debug:
+        #     # logger.log_def(user_threads[user_id])
+        #     new_content_msg = Message('user', message)
+
+        #     user_threads[user_id].append(new_content_msg)
+        #     response = openai.ChatCompletion.create(
+        #         model=current_app.config['MODEL_ID'],
+        #         messages=user_threads[user_id],
+        #         max_tokens=1024,
+        #         n=1,
+        #         stop=None,
+        #     )
+        # else:
+        #     response = stub_chat(f"answer for {message}", "assistant")
+
+        # print(response)
+        # user_threads[user_id].append(response.choices[0].message)
+        # logger.log_def(response.choices)
+        # logger.log_def(response.choices[0].message.content)
+        # # db_log_append(user_id, message, response.choices[0].message.content, db_handle)
+        # message = ChatMessage(user_id, response.choices[0].message.content, "assistant", "diary")
+        # append_chat(current_app.db, user, message.spread())
+
+        chat_history = render_template("chat/message.html.jinja", chat_messages=[new_message])
         # import flask
         # flask.re
         return chat_history
@@ -105,7 +135,7 @@ def send(chat_type, mode="simple"):
 def get_history(chat_type):
     user = User.fetch_user_by_id(session['uuid'])
     logger.log_def(f'get for {user.uuid} {chat_type}')
-    messages = load_chat(current_app.db, user, chat_type)
+    messages = load_thread(current_app.db, user, chat_type)
     # logger.log_def(len(messages))
     logger.log_def(messages)
     # resp = Response()
@@ -210,14 +240,14 @@ def load_chat(db, user, chat_type):
     return messages
 
 def load_thread(db, user, chat_type):
-    load_thread_sql = '''SELECT sender, message, chat_type, created from chats where user_id=? AND chat_type=?'''
+    load_thread_sql = '''SELECT sender, message, chat_type, mode, created from chats where user_id=? AND chat_type=?'''
     result = None
     messages = []
 
     try:
-        logger.log_def(f'load {user.username} {chat_type} chats')
+        logger.log_def(f'load {user.username} {chat_type} chats db {db}')
         # result = current_app.db.exe_queries([(load_chat_sql, (self.uuid, chat_type))])
-        result = db.exe_queries([(load_chat_sql, (user.uuid, chat_type, ))])[0]
+        result = db.exe_queries([(load_thread_sql, (user.uuid, chat_type, ))])[0]
         logger.log_def(len(result))
         if not result or len(result) == 0:
             logger.log_with_metadata(40, 'error loading chat')
@@ -235,7 +265,7 @@ def load_thread(db, user, chat_type):
     return messages
 
 def append_chat(db, user, data):
-    add_chat_sql = '''INSERT INTO chats (user_id, sender, message, chat_type) VALUES (?,?,?,?)'''
+    add_chat_sql = '''INSERT INTO chats (user_id, sender, chat_mode, message, chat_type) VALUES (?,?,?,?,?)'''
     result = None
 
     try:
