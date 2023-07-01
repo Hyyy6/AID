@@ -61,8 +61,8 @@ async function sendApppendChat(chat_type) {
       'Content-Type': 'application/json'
     }
   })
-  .then((response) => response.text())
-  .then((html_text) => {
+  .then((response) => response.json())
+  .then((resp_json) => {
     // console.log(html_text)
     parser = new DOMParser()
     html = parser.parseFromString(html_text, 'text/html')
@@ -86,6 +86,7 @@ diaryForm.addEventListener('submit', (event) => {
   sendApppendChat('diary')
 });
 // Psychologist Assistant
+if (psychologistForm)
 psychologistForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const message = psychologistMessageInput.value;
@@ -115,23 +116,68 @@ psychologistForm.addEventListener('submit', (event) => {
     });
 });
 
+
+var selectedMessages = [];
+var selectionStartIndex = -1;
+
 // Function to add a message to the chat window
 function addMessage(chatContent, sender, content) {
-  // const chatContent = document.querySelector('#chat-content');
-
   const messageDiv = document.createElement('div');
   messageDiv.className = `message ${sender.toLowerCase()}`;
+  messageDiv.dataset.messageIndex = chatContent.childElementCount; // Add message index
 
   const contentP = document.createElement('p');
   contentP.textContent = `${content}`;
 
-  // messageDiv.appendChild(timestampSpan);
   messageDiv.appendChild(contentP);
   chatContent.appendChild(messageDiv);
+
+  // Add event listener for selecting messages on left click
+  messageDiv.addEventListener('click', (event) => {
+    const clickedIndex = parseInt(messageDiv.dataset.messageIndex);
+
+    // Selecting individual messages
+    if (!event.shiftKey && !event.ctrlKey) {
+      if (messageDiv.classList.contains('selected')) {
+        // Deselect the message
+        messageDiv.classList.remove('selected');
+        const index = selectedMessages.indexOf(clickedIndex);
+        selectedMessages.splice(index, 1);
+      } else {
+        // Select the message
+        messageDiv.classList.add('selected');
+        selectedMessages.push(clickedIndex);
+      }
+    }
+
+    // Selecting range of messages
+    if (event.shiftKey && selectionStartIndex >= 0) {
+      const startIndex = Math.min(clickedIndex, selectionStartIndex);
+      const endIndex = Math.max(clickedIndex, selectionStartIndex);
+
+      // Deselect all messages
+      selectedMessages.forEach((index) => {
+        chatContent.children[index].classList.remove('selected');
+      });
+      selectedMessages = [];
+
+      // Select messages in the range
+      for (let i = startIndex; i <= endIndex; i++) {
+        chatContent.children[i].classList.add('selected');
+        selectedMessages.push(i);
+      }
+    }
+
+    // Update the selection start index if necessary
+    if (selectionStartIndex < 0) {
+      selectionStartIndex = clickedIndex;
+    }
+  });
 
   // Scroll to the bottom of the chat window
   chatContent.scrollTop = chatContent.scrollHeight;
 }
+
 
 // Function to get the current timestamp in the format 'YYYY-MM-DD HH:MM:SS'
 function getCurrentTimestamp() {
@@ -171,10 +217,12 @@ diaryChatContent.addEventListener('dragstart', (event) => {
 });
 
 // Enable dropping of messages to the psychologist chat
+if (psychologistChatContent)
 psychologistChatContent.addEventListener('dragover', (event) => {
   event.preventDefault();
 });
 
+if (psychologistChatContent)
 psychologistChatContent.addEventListener('drop', (event) => {
   event.preventDefault();
   const messageText = event.dataTransfer.getData('text/plain');
@@ -346,3 +394,5 @@ const clear_diary_context_button = document.getElementById("clear-diary-context"
 
 
 console.log(diaryForm);
+selectedMessages.push(1);
+console.log(selectedMessages);

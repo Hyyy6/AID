@@ -5,6 +5,7 @@ from webapp.utils.stub_chat import stub_chat, Message
 from .user import User, ChatMessage
 from .utils.log import MyAppLogger
 import json
+import pickle
 
 bp = Blueprint("chat", __name__)
 
@@ -123,8 +124,14 @@ def send(chat_type, mode="simple"):
         # append_chat(current_app.db, user, message.spread())
 
         chat_history = render_template("chat/message.html.jinja", chat_messages=[new_message])
+        respBodyJson = {
+            'metadata': "a",
+            'messages': chat_history
+            }
+        respBody = json.dumps(respBodyJson)
         # import flask
         # flask.re
+        response = Response(respBody, status = 200, mimetype='application/json')
         return chat_history
     elif mode == "simple":
         return "OK"
@@ -240,7 +247,7 @@ def load_chat(db, user, chat_type):
     return messages
 
 def load_thread(db, user, chat_type):
-    load_thread_sql = '''SELECT sender, message, chat_type, mode, created from chats where user_id=? AND chat_type=?'''
+    load_thread_sql = '''SELECT sender, message, chat_type, chat_mode, created from chats where user_id=? AND chat_type=?'''
     result = None
     messages = []
 
@@ -265,7 +272,7 @@ def load_thread(db, user, chat_type):
     return messages
 
 def append_chat(db, user, data):
-    add_chat_sql = '''INSERT INTO chats (user_id, sender, chat_mode, message, chat_type) VALUES (?,?,?,?,?)'''
+    add_chat_sql = '''INSERT INTO chats (user_id, sender, chat_mode, message, chat_type) VALUES (?,?,?,?,?)''' #append 
     result = None
 
     try:
@@ -324,3 +331,44 @@ def set_debug():
     # logger.log_def(debug['debug'])
     current_app.config['DEBUG'] = debug['debug']
     return f'Set debug to {debug}'
+
+
+
+# Write archive order
+def write_archive_order(db, archive_id, order):
+    order_blob = pickle.dumps(order)
+    db.get_cursor().execute('UPDATE archives SET "order" = ? WHERE id = ?', (order_blob, archive_id))
+    db.commit()
+
+# Read archive order
+def read_archive_order(db, archive_id):
+    db.get_cursor.execute('SELECT "order" FROM archives WHERE id = ?', (archive_id,))
+    result = db.get_cursor.fetchone()
+    if result is not None and result[0] is not None:
+        order_blob = result[0]
+        order = pickle.loads(order_blob)
+        return order
+    return []
+
+# Write chat order
+def write_chat_order(db, chat_id, order):
+    order_blob = pickle.dumps(order)
+    db.get_cursor.execute('UPDATE user_chats SET "order" = ? WHERE id = ?', (order_blob, chat_id))
+    db.commit()
+
+# Read chat order
+def read_chat_order(db, chat_id):
+    db.get_cursor.execute('SELECT "order" FROM user_chats WHERE id = ?', (chat_id,))
+    result = db.get_cursor.fetchone()
+    if result is not None and result[0] is not None:
+        order_blob = result[0]
+        order = pickle.loads(order_blob)
+        return order
+    return []
+
+def get_messages_by_order(db, order):
+    order_str = ','.join(str(id) for id in order)
+    query = f'SELECT * FROM messages WHERE id IN ({order_str}) ORDER BY FIELD(id, {order_str})'
+    db.get_cursor.execute(query)
+    result = db.get_cursor.fetchall()
+    return result
