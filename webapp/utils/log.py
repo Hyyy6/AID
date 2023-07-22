@@ -4,27 +4,15 @@ import datetime
 
 
 
-def read_level():
-    level = logging.INFO  # Default level if 'instance/dbg' does not exist
-
-    try:
-        with open('instance/dbg', 'r') as f:
-            level_str = f.read().strip()
-            if level_str.isdigit():
-                level = int(level_str)
-            else:
-                level = getattr(logging, level_str.upper(), level)
-    except FileNotFoundError:
-        pass
-
-    return level
 class MyAppLogger(logging.Logger):
     def __init__(self, name, level=logging.NOTSET, timestamp=False):
         super().__init__(name, level)
 
         self.timestamp = timestamp
         # Create a formatter
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter("%(levelname)s: %(message)s")
+        # formatter = logging.Formatter(f"{'%(asctime)s:' if timestamp else ''}%(levelname)s: %(message)s")
+        # formatter = logging.Formatter('%(message)s')
 
         # Create file handler (optional)
         self.file_handler = logging.FileHandler('app.log')
@@ -83,27 +71,78 @@ class MyAppLogger(logging.Logger):
         frame = inspect.currentframe().f_back
         for i in range(0, depth):
             frame = frame.f_back
+        file_name = frame.f_code.co_filename
         func_name = frame.f_code.co_name
         line_number = frame.f_lineno
+
 
         if timestamp or self.timestamp:
             message = f'{self.get_timestamp()} - {message}'
 
-        log_message = f'{func_name} (Line: {line_number}) - {message}'
+        log_message = f'File \"{file_name}\", line {line_number}, in {func_name}\n{message}\n'
         self.log(level, log_message)
 
-    def log_info(self, message):
-        self.log_with_metadata(logging.INFO, message, 1)
+    def error(self, message, timestamp=False):
+        self.log_with_metadata(logging.ERROR, message, timestamp)
 
-    def log_def(self, message):
-        self.log_with_metadata(self.level, message, 1)
+    def debug(self, message, timestamp=False):
+        self.log_with_metadata(logging.DEBUG, message, timestamp)
+
+    def info(self, message, timestamp=False):
+        self.log(logging.INFO, message)
+
+    def defualt(self, message):
+        self.log_with_metadata(self.level, message)
+
+    
 
     @staticmethod
     def get_timestamp():
         """Get the current timestamp in a specific format."""
         return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
+    def read_level(self):
+        level = logging.INFO  # Default level if 'instance/dbg' does not exist
 
+        try:
+            with open('instance/dbg', 'r') as f:
+                level_str = f.readline().strip()
+                if level_str.isdigit():
+                    level = int(level_str)
+                else:
+                    level = getattr(logging, level_str.upper(), level)
+                
+                tstamp = f.readline().strip().lower()
+                if tstamp in {"1", "on", "yes", "y", "true"}:
+                    self.timestamp = True
+        except FileNotFoundError:
+            pass
+
+        return level
+
+class CustomLoggerWrapper:
+    def __init__(self, name):
+        self.logger = logging.getLogger(name)
+        self.formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(pathname)s - %(lineno)d - %(message)s')
+
+    def add_handler(self, handler):
+        handler.setFormatter(self.formatter)
+        self.logger.addHandler(handler)
+
+    def info(self, message):
+        self.logger.info(message, stack_info=True)
+
+    def warning(self, message):
+        self.logger.warning(message, stack_info=True)
+
+    def error(self, message):
+        self.logger.error(message, stack_info=True)
+
+    def exception(self, message):
+        self.logger.exception(message)
+
+    def critical(self, message):
+        self.logger.critical(message, stack_info=True)
 
 
 # # Example usage in a Flask app
