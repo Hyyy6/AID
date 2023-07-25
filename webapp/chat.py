@@ -3,7 +3,7 @@ from flask import current_app, render_template, request, flash, Response, Bluepr
 from flask_login import login_required
 from webapp.utils.stub_chat import stub_chat, Message
 from .user import User, ChatMessage
-from .utils.log import MyAppLogger, CustomLoggerWrapper
+from .utils.log import MyAppLogger#, CustomLoggerWrapper
 import json
 import pickle
 
@@ -11,15 +11,15 @@ bp = Blueprint("chat", __name__)
 
 user_threads = {}
 
-logger = MyAppLogger('app_logger')
-logger.set_log_level('DEBUG')
-logg = CustomLoggerWrapper("chat")
+log = MyAppLogger('app_logger')
+log.set_log_level('INFO')
+# logg = CustomLoggerWrapper("chat")
 
 @bp.route('/chat', methods=['GET'])
 @login_required
 def index():
-    logger.defualt("get chat " + request.method)
-    logg.error("get chat with stack")
+    log.info("get chat " + request.method)
+    # logg.error("get chat with stack")
     # logg.critical("get chat with stack")
     flash("chat", "info")
     return render_template('chat/chat.html.jinja')
@@ -38,7 +38,7 @@ def import_thread(chat_type, mode="simple"):
 @login_required
 def send(chat_type, mode="simple"):
     debug = current_app.config['DEBUG'] # enable debug
-    logger.defualt(f"receive chat type {chat_type} msg (debug {debug})")
+    log.info(f"receive chat type {chat_type} msg (debug {debug})")
 
     user_id = session['uuid']
     user_request = request.get_json()
@@ -47,7 +47,7 @@ def send(chat_type, mode="simple"):
     msg_content = user_request['message']
     role = user_request['role']
     user = User.fetch_user_by_id(user_id)
-    logger.defualt(f' user {user} id {user.get_id()} name {user.get_name()}')
+    log.info(f' user {user} id {user.get_id()} name {user.get_name()}')
     new_message = ChatMessage(user_id, msg_content, chat_mode, role, chat_type)
     response = None
     if mode == "conversation":
@@ -58,7 +58,7 @@ def send(chat_type, mode="simple"):
                 # with open(os.path.join(current_app.config['RULES_DIR'], f'/models/{chat_type}_rules.txt'), 'r') as f:
                     # rules = f.read()
             rules = get_rules(current_app.db, user, chat_type)
-            logger.defualt(rules)
+            log.info(rules)
             # except Exception as e:
             #     logger.log_with_metadata(100, f'could not send chat ', True)
             #     logger.log_with_metadata(100, e)
@@ -90,12 +90,12 @@ def send(chat_type, mode="simple"):
         new_message = ChatMessage(user_id, response.choices[0].message.content, chat_mode, "assistant", chat_type)
         user_threads[user_id].append(new_message)
         append_chat(current_app.db, user, new_message.spread())
-        logger.defualt(f'append as {response.choices[0].message.role}')
+        log.info(f'append as {response.choices[0].message.role}')
     elif mode == "simple": ### mode simple ###
         if user_id not in user_threads:
             thread = []
             user_threads[user_id] = thread
-        logger.info("add to simple chat")
+        log.info("add to simple chat")
     # new_message = ChatMessage(user_id, msg_content, chat_mode, role, chat_type)
         append_chat(current_app.db, user, new_message.spread())
         thread = user_threads[user_id]
@@ -125,7 +125,7 @@ def send(chat_type, mode="simple"):
         # # db_log_append(user_id, message, response.choices[0].message.content, db_handle)
         # message = ChatMessage(user_id, response.choices[0].message.content, "assistant", "diary")
         # append_chat(current_app.db, user, message.spread())
-
+        log.error(f"new message: {new_message.spread()}")
         chat_history = render_template("chat/message.html.jinja", chat_messages=[new_message])
         respBodyJson = {
             'metadata': "a",
@@ -144,13 +144,17 @@ def send(chat_type, mode="simple"):
 @login_required
 def get_history(chat_type):
     user = User.fetch_user_by_id(session['uuid'])
-    logger.defualt(f'get for {user.uuid} {chat_type}')
+    log.info(f'get for {user.uuid} {chat_type}')
     messages = load_thread(current_app.db, user, chat_type)
+    message_ord = get_messages_by_order()
     # logger.log_def(len(messages))
-    logger.defualt(messages)
+    log.info(messages)
+    for message in messages:
+        log.info(message.spread())
+
     # resp = Response()
     if not messages:
-        logger.error("empty history")
+        log.error("empty history")
         return Response(status=204)
     return render_template("chat/message.html.jinja", chat_messages=messages)
 
@@ -169,19 +173,19 @@ def clear_history(chat_type, dst):
 
 @bp.route('/<chat_type>/rules/get', methods=['GET'])
 def get_file(chat_type):
-    logger.defualt("get rules")
+    log.info("get rules")
     rules = None
     try:
         user = User.fetch_user_by_id(session['uuid'])
         rules = get_rules(current_app.db, user, chat_type)
         # rules = rows[0]
     except Exception as e:
-        logger.error(100, e)
+        log.error(100, e)
 
     if not rules:
         return Response("Can't get chat rules", status=404)
     
-    logger.defualt(f'rules get {rules}')
+    log.info(f'rules get {rules}')
     response = make_response(rules, 200)
     response.mimetype = 'text/plain'
     return response
@@ -199,7 +203,7 @@ def set_rules(chat_type):
     # logger.log_def(request.data)
     user_id = session['uuid']
     file = request.form['file']
-    logger.defualt(file)
+    log.info(file)
     if file:
         try:
             user = User.fetch_user_by_id(session['uuid'])
@@ -214,9 +218,9 @@ def set_rules(chat_type):
                     stop=None,
                     user=user_id
                 )
-            logger.defualt(response.choices[0].message.content)
+            log.info(response.choices[0].message.content)
         except Exception as e:
-            logger.log_with_metadata(100, e, True)
+            log.log_with_metadata(100, e, True)
             return Response("Failed to set rules", status=500)
         return "File uploaded successfully."
     else:
@@ -230,12 +234,12 @@ def load_chat(db, user, chat_type):
     messages = []
 
     try:
-        logger.defualt(f'load {user.username} {chat_type} chats')
+        log.info(f'load {user.username} {chat_type} chats')
         # result = current_app.db.exe_queries([(load_chat_sql, (self.uuid, chat_type))])
         result = db.exe_queries([(load_chat_sql, (user.uuid, chat_type, ))])[0]
-        logger.defualt(len(result))
+        log.info(len(result))
         if not result or len(result) == 0:
-            logger.log_with_metadata(40, 'error loading chat')
+            log.log_with_metadata(40, 'error loading chat')
             return None
         for message_db in result:
             # logger.log_def(message_db)
@@ -244,8 +248,8 @@ def load_chat(db, user, chat_type):
             # logger.log_def(messages[-1].content)
 
     except Exception as e:
-        logger.log_with_metadata(100, f"Could not load {user.username} chat", True)
-        logger.log_with_metadata(100, e)
+        log.log_with_metadata(100, f"Could not load {user.username} chat", True)
+        log.log_with_metadata(100, e)
         return None
     return messages
 
@@ -255,12 +259,12 @@ def load_thread(db, user, chat_type):
     messages = []
 
     try:
-        logger.defualt(f'load {user.username} {chat_type} chats db {db}')
+        log.info(f'load {user.username} {chat_type} chats db {db}')
         # result = current_app.db.exe_queries([(load_chat_sql, (self.uuid, chat_type))])
         result = db.exe_queries([(load_thread_sql, (user.uuid, chat_type, ))])[0]
-        logger.defualt(len(result))
+        log.info(len(result))
         if not result or len(result) == 0:
-            logger.log_with_metadata(40, 'error loading chat')
+            log.log_with_metadata(40, 'error loading chat')
             return None
         for message_db in result:
             # logger.log_def(message_db)
@@ -269,8 +273,8 @@ def load_thread(db, user, chat_type):
             # logger.log_def(messages[-1].content)
 
     except Exception as e:
-        logger.log_with_metadata(100, f"Could not load {user.username} chat", True)
-        logger.log_with_metadata(100, e)
+        log.log_with_metadata(100, f"Could not load {user.username} chat", True)
+        log.log_with_metadata(100, e)
         return None
     return messages
 
@@ -279,11 +283,11 @@ def append_chat(db, user, data):
     result = None
 
     try:
-        logger.defualt(f'append {user.username} chat')
+        log.info(f'append {user.username} chat')
         result = db.exe_queries([(add_chat_sql, data)])
     except Exception as e:
-        logger.log_with_metadata(100, f'Could not append to {user.username} chat', True)
-        logger.log_with_metadata(100, e)
+        log.log_with_metadata(100, f'Could not append to {user.username} chat', True)
+        log.log_with_metadata(100, e)
         return result
     return result
 
@@ -294,43 +298,43 @@ def clear_chat(db, user, chat_type):
     try:
     # db_handle = DBHandler.get_cursor()
         ret = db.exe_queries([(clear_chat_sql, (user.get_id(), chat_type, ))])
-        logger.log_with_metadata(30, f'clear {chat_type} chat for {user.username}; ret - {ret}')
+        log.log_with_metadata(30, f'clear {chat_type} chat for {user.username}; ret - {ret}')
     except Exception as e:
-        logger.log_with_metadata(100, e, True)
+        log.log_with_metadata(100, e, True)
     return ret
 
 def save_rules(db, user, chat_type, rules):
     insert_rules_sql = '''INSERT OR IGNORE INTO chat_rules (rules, user_id, chat_type) VALUES (?, ?, ?)'''
     save_rules_sql = '''UPDATE chat_rules SET rules = ? WHERE user_id = ? AND chat_type = ?'''
     ret = None
-    logger.defualt(f'save ${chat_type} rules')
+    log.info(f'save ${chat_type} rules')
     try:
         ret = db.exe_queries([
             (insert_rules_sql, (rules, user.uuid, chat_type,)),
             (save_rules_sql, (rules, user.uuid, chat_type,)),
             ])
-        logger.defualt(f'ret ${ret}')
+        log.info(f'ret ${ret}')
     except Exception as e:
-        logger.log_with_metadata(100, e, True)
+        log.log_with_metadata(100, e, True)
     return ret
 
 def get_rules(db, user, chat_type):
     get_rules_sql = '''SELECT rules FROM chat_rules WHERE user_id = ? AND chat_type = ?'''
     ret = None
-    logger.defualt(f'get {chat_type} rules')
+    log.info(f'get {chat_type} rules')
     try:
         query_ret = db.exe_queries([(get_rules_sql, (user.uuid, chat_type,))])[0] #rows
         rules = query_ret[0][0] #first row, first (and only) column
-        logger.defualt(f'ret {rules}')
+        log.info(f'ret {rules}')
     except Exception as e:
-        logger.log_with_metadata(100, e, True)
+        log.log_with_metadata(100, e, True)
     return rules
 
 
 @bp.route('/debug', methods=['POST'])
 def set_debug():
     debug = request.json
-    logger.log_with_metadata(30, f' set debug to {debug["debug"]}')
+    log.log_with_metadata(30, f' set debug to {debug["debug"]}')
     # logger.log_def(debug['debug'])
     current_app.config['DEBUG'] = debug['debug']
     return f'Set debug to {debug}'

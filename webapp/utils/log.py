@@ -7,7 +7,7 @@ import datetime
 class MyAppLogger(logging.Logger):
     def __init__(self, name, level=logging.NOTSET, timestamp=False):
         super().__init__(name, level)
-
+    
         self.timestamp = timestamp
         # Create a formatter
         formatter = logging.Formatter("%(levelname)s: %(message)s")
@@ -22,11 +22,10 @@ class MyAppLogger(logging.Logger):
 
         # Create console handler
         self.console_handler = logging.StreamHandler()
-        self.console_handler.setLevel(read_level())  # Set the log level for the console handler
+        self.console_handler.setLevel(self.read_level())  # Set the log level for the console handler
         self.console_handler.setFormatter(formatter)
         self.addHandler(self.console_handler)
         # self.dbg_lvl = read_level()
-
 
         custom_handler = logging.StreamHandler()
         custom_handler.setLevel(logging.WARNING)
@@ -59,7 +58,7 @@ class MyAppLogger(logging.Logger):
         self.file_handler.setLevel(level.upper())
         self.console_handler.setLevel(level.upper())
 
-    def log_with_metadata(self, level, message, depth = 0, timestamp=False):
+    def log_with_metadata(self, level, message, timestamp, print_stack):
         """
         Log a message with metadata such as function name and line number.
 
@@ -68,9 +67,9 @@ class MyAppLogger(logging.Logger):
             message (str): Log message.
             timestamp (bool, optional): Include timestamp in the log message. Default is False.
         """
-        frame = inspect.currentframe().f_back
-        for i in range(0, depth):
-            frame = frame.f_back
+        frame = inspect.currentframe().f_back.f_back
+        # for i in range(0, depth):
+        #     frame = frame.f_back
         file_name = frame.f_code.co_filename
         func_name = frame.f_code.co_name
         line_number = frame.f_lineno
@@ -79,28 +78,24 @@ class MyAppLogger(logging.Logger):
         if timestamp or self.timestamp:
             message = f'{self.get_timestamp()} - {message}'
 
-        log_message = f'File \"{file_name}\", line {line_number}, in {func_name}\n{message}\n'
+        if print_stack:
+            log_message = f'File \"{file_name}\", line {line_number}, in {func_name}\n{message}\n'
+        else:
+            log_message = message
         self.log(level, log_message)
 
-    def error(self, message, timestamp=False):
-        self.log_with_metadata(logging.ERROR, message, timestamp)
+    def error(self, message, timestamp=False, print_stack=1):
+        self.log_with_metadata(logging.ERROR, message, timestamp, print_stack)
 
-    def debug(self, message, timestamp=False):
-        self.log_with_metadata(logging.DEBUG, message, timestamp)
+    def debug(self, message, timestamp=False, print_stack=1):
+        self.log_with_metadata(logging.DEBUG, message, timestamp, print_stack)
 
-    def info(self, message, timestamp=False):
-        self.log(logging.INFO, message)
+    def info(self, message, timestamp=False, print_stack=1):
+        self.log_with_metadata(logging.INFO, message, timestamp, print_stack)
 
     def defualt(self, message):
-        self.log_with_metadata(self.level, message)
+        self.log_with_metadata(self.level, message, 0, 0)
 
-    
-
-    @staticmethod
-    def get_timestamp():
-        """Get the current timestamp in a specific format."""
-        return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
     def read_level(self):
         level = logging.INFO  # Default level if 'instance/dbg' does not exist
 
@@ -120,29 +115,35 @@ class MyAppLogger(logging.Logger):
 
         return level
 
-class CustomLoggerWrapper:
-    def __init__(self, name):
-        self.logger = logging.getLogger(name)
-        self.formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(pathname)s - %(lineno)d - %(message)s')
+    def get_timestamp():
+        """Get the current timestamp in a specific format."""
+        return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
 
-    def add_handler(self, handler):
-        handler.setFormatter(self.formatter)
-        self.logger.addHandler(handler)
 
-    def info(self, message):
-        self.logger.info(message, stack_info=True)
+# class CustomLoggerWrapper:
+#     def __init__(self, name):
+#         self.logger = logging.getLogger(name)
+#         self.formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(pathname)s - %(lineno)d - %(message)s')
 
-    def warning(self, message):
-        self.logger.warning(message, stack_info=True)
+#     def add_handler(self, handler):
+#         handler.setFormatter(self.formatter)
+#         self.logger.addHandler(handler)
 
-    def error(self, message):
-        self.logger.error(message, stack_info=True)
+#     def info(self, message):
+#         self.logger.info(message, stack_info=True)
 
-    def exception(self, message):
-        self.logger.exception(message)
+#     def warning(self, message):
+#         self.logger.warning(message, stack_info=True)
 
-    def critical(self, message):
-        self.logger.critical(message, stack_info=True)
+#     def error(self, message):
+#         self.logger.error(message, stack_info=True)
+
+#     def exception(self, message):
+#         self.logger.exception(message)
+
+#     def critical(self, message):
+#         self.logger.critical(message, stack_info=True)
 
 
 # # Example usage in a Flask app
